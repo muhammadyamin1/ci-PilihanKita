@@ -9,18 +9,41 @@ class Auth extends BaseController
         return view('auth/login');
     }
 
-    public function process()
+    public function login()
     {
+        $session = session();
+        $userModel = new \App\Models\UserModel();
+
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
 
-        // Contoh sederhana: admin / user
-        if ($username === 'admin' && $password === 'admin') {
-            return redirect()->to('/dashboard');
-        } elseif ($username === 'user' && $password === 'user') {
-            return redirect()->to('/pemilihan');
+        // Cek username
+        $user = $userModel->where('username', $username)->first();
+
+        if ($user) {
+            // Cek password (password_verify)
+            if (password_verify($password, $user['password'])) {
+                // Set data session
+                $sessionData = [
+                    'id'       => $user['id'],
+                    'username' => $user['username'],
+                    'nama'     => $user['nama'],
+                    'role'     => $user['role'],
+                    'logged_in' => true,
+                ];
+                $session->set($sessionData);
+
+                // Arahkan sesuai role
+                if ($user['role'] === 'admin') {
+                    return redirect()->to('/dashboard');
+                } else {
+                    return redirect()->to('/pemilihan');
+                }
+            } else {
+                return redirect()->back()->with('error', 'Password salah!');
+            }
         } else {
-            return redirect()->back()->with('error', 'Username atau password salah!');
+            return redirect()->back()->with('error', 'Username tidak ditemukan!');
         }
     }
 
@@ -32,5 +55,11 @@ class Auth extends BaseController
     public function pemilihan()
     {
         return view('auth/pemilihan');
+    }
+
+    public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('/login');
     }
 }
