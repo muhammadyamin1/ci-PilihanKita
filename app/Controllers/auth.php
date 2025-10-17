@@ -6,7 +6,7 @@ class Auth extends BaseController
 {
     public function index()
     {
-        return view('auth/login');
+        return view('login');
     }
 
     public function login()
@@ -35,9 +35,9 @@ class Auth extends BaseController
 
                 // Arahkan sesuai role
                 if ($user['role'] === 'admin') {
-                    return redirect()->to('/dashboard');
+                    return redirect()->to('admin/dashboard');
                 } else {
-                    return redirect()->to('/pemilihan');
+                    return redirect()->to('user/pemilihan');
                 }
             } else {
                 return redirect()->back()->with('error', 'Password salah!');
@@ -47,14 +47,9 @@ class Auth extends BaseController
         }
     }
 
-    public function dashboard()
-    {
-        return view('auth/dashboard');
-    }
-
     public function pemilihan()
     {
-        return view('auth/pemilihan');
+        return view('user/pemilihan');
     }
 
     public function logout()

@@ -9,14 +9,18 @@ class UserModel extends Model
     protected $table            = 'users';
     protected $primaryKey       = 'id';
     protected $allowedFields    = [
+        'admin_id',
         'username',
         'password',
         'nama',
+        'identifier',
         'role',
-        'sudah_memilih'
+        'generated',
+        'sudah_memilih',
+        'created_at'
     ];
-    
-    protected $useTimestamps    = true; // otomatis isi created_at kalau ada
+
+    protected $useTimestamps    = true;
     protected $createdField     = 'created_at';
-    protected $updatedField     = ''; // kosong karena tidak ada kolom updated_at
+    protected $updatedField     = ''; // tidak ada kolom updated_at
 }

@@ -8,5 +8,9 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');         // Landing page
 $routes->get('login', 'Auth::index');     // Form login
 $routes->post('login', 'Auth::login');  // Proses login
-$routes->get('dashboard', 'Auth::dashboard', ['filter' => 'auth:admin']);
-$routes->get('pemilihan', 'Auth::pemilihan', ['filter' => 'auth:user']);
+$routes->group('admin', ['filter' => 'F_admin'], function($routes) {
+    $routes->get('dashboard', 'Admin\Dashboard::index');
+});
+$routes->group('user', ['filter' => 'F_user'], function($routes) {
+    $routes->get('pemilihan', 'Auth::pemilihan');
+});
