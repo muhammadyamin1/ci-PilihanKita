@@ -10,7 +10,14 @@ $routes->get('login', 'Auth::index');     // Form login
 $routes->post('login', 'Auth::login');  // Proses login
 $routes->group('admin', ['filter' => 'F_admin'], function($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
+
+    $routes->get('kategori', 'Admin\Kategori::index');
+    $routes->post('kategori/store', 'Admin\Kategori::store');
+    $routes->post('kategori/toggle/(:num)', 'Admin\Kategori::toggle/$1');
+    $routes->post('kategori/delete/(:num)', 'Admin\Kategori::delete/$1');
+
 });
 $routes->group('user', ['filter' => 'F_user'], function($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
 });
+$routes->get('auth/logout', 'Auth::logout');

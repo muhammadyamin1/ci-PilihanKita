@@ -14,7 +14,7 @@
       border-color: #0d6efd;
     }
 
-    a{
+    a {
       text-decoration: none;
     }
   </style>
@@ -28,13 +28,24 @@
     <p class="text-center mb-3 text-muted">Masuk untuk melanjutkan</p>
 
     <?php if (session()->getFlashdata('error')): ?>
-    <script>
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: '<?= session()->getFlashdata('error'); ?>'
+      <script>
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: '<?= session()->getFlashdata('error'); ?>'
         })
-    </script>
+      </script>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('success')): ?>
+      <script>
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: '<?= session()->getFlashdata('success'); ?>',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      </script>
     <?php endif; ?>
 
     <form method="post" action="<?= base_url('login'); ?>">

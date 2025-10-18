@@ -29,9 +29,15 @@
               id="navigation"
             >
               <li class="nav-item">
-                <a href="<?= base_url('admin/dashboard') ?>" class="nav-link active">
+                <a href="<?= base_url('admin/dashboard') ?>" class="nav-link">
                   <i class="nav-icon bi bi-speedometer"></i>
                   <p>Dashboard</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="<?= base_url('admin/kategori') ?>" class="nav-link">
+                  <i class="nav-icon bi bi-list-check"></i>
+                  <p>Kategori Pemilihan</p>
                 </a>
               </li>
               
