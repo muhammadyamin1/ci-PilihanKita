@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 16 Okt 2025 pada 05.37
+-- Waktu pembuatan: 18 Okt 2025 pada 11.55
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -35,7 +35,7 @@ CREATE TABLE `calon` (
   `visi` text DEFAULT NULL,
   `misi` text DEFAULT NULL,
   `foto` varchar(255) DEFAULT NULL,
-  `kategori` enum('ketua_kelas','osis','kating','bem') DEFAULT NULL
+  `kategori_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -50,6 +50,16 @@ CREATE TABLE `kategori_pemilihan` (
   `aktif` tinyint(1) DEFAULT 0,
   `admin_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `kategori_pemilihan`
+--
+
+INSERT INTO `kategori_pemilihan` (`id`, `nama`, `aktif`, `admin_id`) VALUES
+(1, 'Ketua Kelas', 0, 1),
+(2, 'OSIS', 0, 1),
+(3, 'Kating', 0, 1),
+(4, 'BEM', 0, 1);
 
 -- --------------------------------------------------------
 
@@ -114,7 +124,8 @@ CREATE TABLE `user_import_log` (
 --
 ALTER TABLE `calon`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_calon_admin` (`admin_id`);
+  ADD KEY `fk_calon_admin` (`admin_id`),
+  ADD KEY `fk_calon_kategori` (`kategori_id`);
 
 --
 -- Indeks untuk tabel `kategori_pemilihan`
@@ -153,13 +164,13 @@ ALTER TABLE `user_import_log`
 -- AUTO_INCREMENT untuk tabel `calon`
 --
 ALTER TABLE `calon`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `kategori_pemilihan`
 --
 ALTER TABLE `kategori_pemilihan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `suara`
@@ -187,7 +198,8 @@ ALTER TABLE `user_import_log`
 -- Ketidakleluasaan untuk tabel `calon`
 --
 ALTER TABLE `calon`
-  ADD CONSTRAINT `fk_calon_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_calon_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_calon_kategori` FOREIGN KEY (`kategori_id`) REFERENCES `kategori_pemilihan` (`id`) ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `kategori_pemilihan`
