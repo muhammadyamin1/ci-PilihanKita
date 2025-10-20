@@ -2,6 +2,14 @@
 <?= $this->section('content') ?>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+    .card:hover {
+        transform: scale(1.02);
+        transition: 0.2s;
+    }
+</style>
+
 <!--begin::App Content Header-->
 <div class="app-content-header">
     <!--begin::Container-->
@@ -40,18 +48,51 @@
             <?php foreach ($calon as $c): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card shadow-sm border-0">
-                        <img src="<?= base_url($c['foto']) ?>" class="card-img-top" alt="Foto Calon">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-1"><?= esc($c['nama_calon']) ?> & <?= esc($c['wakil_calon']) ?></h5>
-                            <small class="text-muted"><?= esc($c['kategori']) ?></small>
-                            <hr>
-                            <p><strong>Visi:</strong> <?= esc($c['visi']) ?></p>
-                            <p><strong>Misi:</strong> <?= esc($c['misi']) ?></p>
-                            <a href="<?= base_url('admin/calon/delete/' . $c['id']) ?>"
-                                onclick="return confirm('Hapus calon ini?')"
-                                class="btn btn-danger btn-sm mt-2">
-                                <i class="bi bi-trash"></i> Hapus
-                            </a>
+                        <img src="<?= base_url($c['foto']) ?>"
+                            class="card-img-top"
+                            alt="Foto Calon"
+                            style="height: 250px; object-fit: contain; background-color: #212529; cursor: pointer;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#fotoModal<?= $c['id'] ?>">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><?= esc($c['nama_calon']) ?> & <?= esc($c['wakil_calon']) ?></h6>
+                                <span class="badge bg-success"><?= esc($c['kategori']) ?></span>
+                            </div>
+                            <hr style="margin: 6px 0px;">
+                            <?php if (strlen($c['visi']) > 1): ?>
+                                <p class="mb-1 text-center"><strong>Visi: </strong><br><?= esc($c['visi']) ?></p>
+                                <hr style="margin: 6px 0px;">
+                            <?php endif; ?>
+                            <?php if (strlen($c['misi']) > 1): ?>
+                                <p class="mb-1">
+                                    <strong>Misi:</strong><br>
+                                    <?= nl2br(esc($c['misi'])) ?>
+                                </p>
+                                <hr style="margin: 6px 0px;">
+                            <?php endif; ?>
+                            <div class="d-flex justify-content-end mt-3">
+                                <a href="<?= base_url('admin/calon/edit/' . $c['id']) ?>" class="btn btn-secondary btn-sm me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <a href="<?= base_url('admin/calon/delete/' . $c['id']) ?>"
+                                    onclick="return confirm('Hapus calon ini?')"
+                                    class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i> Hapus
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="fotoModal<?= $c['id'] ?>" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-body p-0 text-center">
+                                    <img src="<?= base_url($c['foto']) ?>"
+                                        alt="Foto Calon"
+                                        class="img-fluid"
+                                        style="max-height: 50vh; object-fit: contain;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
