@@ -98,6 +98,7 @@
                     </div>
                     <div class="col-md-6 text-center mx-auto">
                         <canvas id="previewCanvas" style="display:none; width:100%; max-width:600px; border:5px solid #ccc;" class="text-center"></canvas>
+                        <div id="fileSizeInfo" class="mt-2 text-muted" style="display: none;"></div>
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Visi</label>
@@ -127,7 +128,18 @@
 </div>
 
 <script>
+    // Load font Liberation Sans lokal
+    const liberationFont = new FontFace('LiberationSans', 'url(/fonts/LiberationSans-Regular.ttf)');
+    liberationFont.load().then((loadedFont) => {
+        document.fonts.add(loadedFont);
+        console.log('Liberation Sans siap digunakan di canvas.');
+    }).catch(err => {
+        console.error('Gagal load Liberation Sans:', err);
+    });
+</script>
+<script>
     const canvas = document.getElementById('previewCanvas');
+    const fileSizeInfo = document.getElementById('fileSizeInfo');
     const ctx = canvas.getContext('2d');
 
     function updatePreview() {
@@ -138,6 +150,7 @@
 
         if (!fileCalon) {
             canvas.style.display = 'none';
+            fileSizeInfo.style.display = 'none';
             return;
         }
 
@@ -164,7 +177,7 @@
         const widthWakil = imgWakil ? imgWakil.width * heightTarget / imgWakil.height : 0;
 
         canvas.width = widthCalon + widthWakil;
-        canvas.height = heightTarget + 90;
+        canvas.height = heightTarget + 97;
 
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -174,7 +187,7 @@
         if (imgWakil) ctx.drawImage(imgWakil, widthCalon, 0, widthWakil, heightTarget);
 
         ctx.fillStyle = 'black';
-        ctx.font = '40px Poppins';
+        ctx.font = '40px LiberationSans';
         ctx.textAlign = 'center';
 
         if (imgWakil) {
@@ -188,6 +201,14 @@
         }
 
         canvas.style.display = 'block';
+
+        // Hitung estimasi ukuran file blob
+        canvas.toBlob((blob) => {
+            const sizeKB = (blob.size / 1024).toFixed(2);
+            fileSizeInfo.textContent = `Estimasi ukuran file: ${sizeKB} KB`;
+        }, 'image/jpeg', 0.9); // 0.9 = kualitas JPEG
+
+        fileSizeInfo.style.display = 'block';
     }
 
     // Event listener: trigger hanya saat file calon/wakil berubah
@@ -206,8 +227,8 @@
     document.getElementById('uploadBtn').addEventListener('click', () => {
         const namaCalon = document.getElementById('namaCalon').value.trim();
         const wakilCalon = document.getElementById('wakilCalon').value.trim();
-        const visi = document.querySelector('textarea[name="visi"]').value.trim();
-        const misi = document.querySelector('textarea[name="misi"]').value.trim();
+        let visi = document.querySelector('textarea[name="visi"]').value.trim();
+        let misi = document.querySelector('textarea[name="misi"]').value.trim();
         const kategoriId = document.querySelector('select[name="kategori_id"]').value;
 
         if (!namaCalon) {
@@ -218,6 +239,14 @@
         if (!canvas || canvas.style.display === 'none') {
             alert('Silakan pilih foto calon terlebih dahulu.');
             return;
+        }
+
+        if (!visi) {
+            visi = '-';
+        }
+
+        if (!misi) {
+            misi = '-';
         }
 
         if (!kategoriId) {
