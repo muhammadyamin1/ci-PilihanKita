@@ -1,2 +1,11 @@
 # Ignore debugbar files
-writable/debugbar/
+writable/debugbar/*
+!writable/debugbar/.gitkeep
+
+# Ignore logs files
+writable/logs/*
+!writable/logs/.gitkeep
+
+# Ignore session files
+writable/session/*
+!writable/session/.gitkeep

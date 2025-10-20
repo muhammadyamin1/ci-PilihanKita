@@ -211,14 +211,27 @@
             .then(res => {
                 if (res.data.success) {
                     showFlash(res.data.message);
+
+                    const row = document.getElementById(`row-${id}`);
+                    const checkbox = row.querySelector('.switch input[type="checkbox"]');
+
+                    // Jika kategori yang dihapus sedang aktif
+                    if (checkbox.checked) {
+                        document.getElementById('status-alert').innerHTML = `
+                        <div class="alert alert-warning">
+                            Belum ada kategori aktif. Voting belum dimulai.
+                        </div>`;
+                    }
+
                     // Hapus baris dari tabel tanpa reload
-                    document.getElementById(`row-${id}`).remove();
+                    row.remove();
                 } else {
                     showFlash(res.data.message, 'danger');
                 }
             })
             .catch(error => {
-                const msg = error.response?.data?.message || 'Gagal menghapus kategori karena alasan tidak diketahui.';
+                const msg = error.response?.data?.message ||
+                    'Gagal menghapus kategori karena alasan tidak diketahui.';
                 showFlash(msg, 'danger');
             });
     }

@@ -96,7 +96,7 @@ class Kategori extends BaseController
         } catch (\Exception $e) {
             // Tangani error FK constraint (misal masih ada calon terkait)
             if (strpos($e->getMessage(), 'a foreign key constraint fails') !== false) {
-                $msg = 'Kategori tidak bisa dihapus karena masih ada calon di dalamnya. Hapus calon tersebut di menu Manajemen Calon terlebih dahulu.';
+                $msg = 'Kategori tidak bisa dihapus karena masih ada calon di dalamnya. Hapus calon tersebut di menu <strong>Manajemen Calon</strong> terlebih dahulu.';
             } else {
                 $msg = 'Terjadi kesalahan saat menghapus kategori: ' . $e->getMessage();
             }
