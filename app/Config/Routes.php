@@ -23,4 +23,7 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
 });
+
 $routes->get('auth/logout', 'Auth::logout');
+
+$routes->get('foto/calon/(:any)', 'UploadController::showCalon/$1', ['filter' => 'F_general']);

@@ -8,6 +8,16 @@
         transform: scale(1.02);
         transition: 0.2s;
     }
+
+    #previewCanvas {
+        display: block;
+        max-width: 100%;
+        max-height: 300px;
+        width: auto;
+        height: auto;
+        border: 5px solid #ccc;
+        margin: 0 auto;
+    }
 </style>
 
 <!--begin::App Content Header-->
@@ -48,28 +58,28 @@
             <?php foreach ($calon as $c): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card shadow-sm border-0">
-                        <img src="<?= base_url($c['foto']) ?>"
+                        <img src="<?= base_url('foto/calon/' . basename($c['foto'])) ?>"
                             class="card-img-top"
                             alt="Foto Calon"
-                            style="height: 250px; object-fit: contain; background-color: #212529; cursor: pointer;"
+                            style="height: 230.5px; object-fit: contain; background-color: #212529; cursor: pointer;"
                             data-bs-toggle="modal"
                             data-bs-target="#fotoModal<?= $c['id'] ?>">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0"><?= esc($c['nama_calon']) ?> & <?= esc($c['wakil_calon']) ?></h6>
+                                <h6 class="mb-0">
+                                    <?= esc($c['nama_calon']) ?>
+                                    <?= !empty($c['wakil_calon']) ? ' & ' . esc($c['wakil_calon']) : '' ?>
+                                </h6>
                                 <span class="badge bg-success"><?= esc($c['kategori']) ?></span>
                             </div>
                             <hr style="margin: 6px 0px;">
-                            <?php if (strlen($c['visi']) > 1): ?>
-                                <p class="mb-1 text-center"><strong>Visi: </strong><br><?= esc($c['visi']) ?></p>
-                                <hr style="margin: 6px 0px;">
+                            <?php if (!empty($c['visi'])): ?>
+                                <p class="mb-1"><strong>Visi:</strong><br><?= nl2br(esc($c['visi'])) ?></p>
+                                <hr style="margin: 6px 0;">
                             <?php endif; ?>
-                            <?php if (strlen($c['misi']) > 1): ?>
-                                <p class="mb-1">
-                                    <strong>Misi:</strong><br>
-                                    <?= nl2br(esc($c['misi'])) ?>
-                                </p>
-                                <hr style="margin: 6px 0px;">
+                            <?php if (!empty($c['misi'])): ?>
+                                <p class="mb-1"><strong>Misi:</strong><br><?= nl2br(esc($c['misi'])) ?></p>
+                                <hr style="margin: 6px 0;">
                             <?php endif; ?>
                             <div class="d-flex justify-content-end mt-3">
                                 <a href="<?= base_url('admin/calon/edit/' . $c['id']) ?>" class="btn btn-secondary btn-sm me-1">
@@ -84,13 +94,13 @@
                         </div>
                     </div>
                     <div class="modal fade" id="fotoModal<?= $c['id'] ?>" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                        <div class="modal-dialog modal-dialog-centered" style="max-width: calc(68vh * 1.346);">
                             <div class="modal-content bg-dark">
                                 <div class="modal-body p-0 text-center">
-                                    <img src="<?= base_url($c['foto']) ?>"
+                                    <img src="<?= base_url('foto/calon/' . basename($c['foto'])) ?>"
                                         alt="Foto Calon"
                                         class="img-fluid"
-                                        style="max-height: 50vh; object-fit: contain;">
+                                        style="max-height: 68vh; object-fit: contain;">
                                 </div>
                             </div>
                         </div>
@@ -138,7 +148,7 @@
                         </div>
                     </div>
                     <div class="col-md-6 text-center mx-auto">
-                        <canvas id="previewCanvas" style="display:none; width:100%; max-width:600px; border:5px solid #ccc;" class="text-center"></canvas>
+                        <canvas id="previewCanvas" style="display: none;" class="text-center"></canvas>
                         <div id="fileSizeInfo" class="mt-2 text-muted" style="display: none;"></div>
                     </div>
                     <div class="col-md-12">
@@ -213,32 +223,45 @@
     }
 
     function drawCanvas(imgCalon, imgWakil, namaCalon, wakilCalon) {
+        const spacing = 20; // jarak antara calon dan wakil jika keduanya ada
+        const textHeight = 62; // tinggi teks di bawah foto
+        const padding = 10; // padding di dalam bingkai
+
         const heightTarget = imgWakil ? Math.max(imgCalon.height, imgWakil.height) : imgCalon.height;
         const widthCalon = imgCalon.width * heightTarget / imgCalon.height;
         const widthWakil = imgWakil ? imgWakil.width * heightTarget / imgWakil.height : 0;
 
-        canvas.width = widthCalon + widthWakil;
-        canvas.height = heightTarget + 97;
+        canvas.width = widthCalon + (imgWakil ? widthWakil + spacing : 0) + padding * 2;
+        canvas.height = heightTarget + textHeight + padding * 3;
 
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw images
-        ctx.drawImage(imgCalon, 0, 0, widthCalon, heightTarget);
-        if (imgWakil) ctx.drawImage(imgWakil, widthCalon, 0, widthWakil, heightTarget);
+        // koordinat x untuk calon dan wakil
+        let xCalon = padding;
+        let xWakil = imgWakil ? xCalon + widthCalon + spacing : 0;
 
+        // Draw images
+        ctx.drawImage(imgCalon, xCalon, padding, widthCalon, heightTarget);
+        if (imgWakil) ctx.drawImage(imgWakil, xWakil, padding, widthWakil, heightTarget);
+
+        // Draw frames / bingkai
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#000'; // warna bingkai hitam
+        ctx.strokeRect(xCalon - 5, padding - 5, widthCalon + 10, heightTarget + textHeight + 20);
+        if (imgWakil) {
+            ctx.strokeRect(xWakil - 5, padding - 5, widthWakil + 10, heightTarget + textHeight + 20);
+        }
+
+        // Draw text
         ctx.fillStyle = 'black';
         ctx.font = '40px LiberationSans';
         ctx.textAlign = 'center';
 
+        // teks di bawah calon
+        ctx.fillText(namaCalon, xCalon + widthCalon / 2, heightTarget + padding + 50);
         if (imgWakil) {
-            // Calon: teks di bawah foto calon (tengah foto 1)
-            ctx.fillText(namaCalon, widthCalon / 2, heightTarget + 60);
-            // Wakil: teks di bawah foto wakil (tengah foto 2)
-            ctx.fillText(wakilCalon, widthCalon + widthWakil / 2, heightTarget + 60);
-        } else {
-            // Hanya calon: teks di tengah canvas
-            ctx.fillText(namaCalon, widthCalon / 2, heightTarget + 60);
+            ctx.fillText(wakilCalon, xWakil + widthWakil / 2, heightTarget + padding + 50);
         }
 
         canvas.style.display = 'block';
@@ -247,7 +270,7 @@
         canvas.toBlob((blob) => {
             const sizeKB = (blob.size / 1024).toFixed(2);
             fileSizeInfo.textContent = `Estimasi ukuran file: ${sizeKB} KB`;
-        }, 'image/jpeg', 0.9); // 0.9 = kualitas JPEG
+        }, 'image/jpeg', 0.9);
 
         fileSizeInfo.style.display = 'block';
     }
@@ -268,6 +291,7 @@
     document.getElementById('uploadBtn').addEventListener('click', () => {
         const namaCalon = document.getElementById('namaCalon').value.trim();
         const wakilCalon = document.getElementById('wakilCalon').value.trim();
+        const fileWakil = document.getElementById('fotoWakil').files[0];
         let visi = document.querySelector('textarea[name="visi"]').value.trim();
         let misi = document.querySelector('textarea[name="misi"]').value.trim();
         const kategoriId = document.querySelector('select[name="kategori_id"]').value;
@@ -277,17 +301,14 @@
             return;
         }
 
-        if (!canvas || canvas.style.display === 'none') {
-            alert('Silakan pilih foto calon terlebih dahulu.');
+        if (fileWakil && !wakilCalon) {
+            alert('Nama wakil calon wajib diisi jika foto wakil diunggah.');
             return;
         }
 
-        if (!visi) {
-            visi = '-';
-        }
-
-        if (!misi) {
-            misi = '-';
+        if (!canvas || canvas.style.display === 'none') {
+            alert('Silakan pilih foto calon terlebih dahulu.');
+            return;
         }
 
         if (!kategoriId) {
@@ -304,8 +325,8 @@
             const formData = new FormData();
             formData.append('nama_calon', namaCalon);
             formData.append('wakil_calon', wakilCalon);
-            formData.append('visi', visi);
-            formData.append('misi', misi);
+            formData.append('visi', visi || '');
+            formData.append('misi', misi || '');
             formData.append('fotoGabungan', blob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
             formData.append('kategori_id', kategoriId);
 

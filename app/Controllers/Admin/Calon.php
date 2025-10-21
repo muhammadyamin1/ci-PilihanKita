@@ -41,18 +41,37 @@ class Calon extends BaseController
 
         $namaCalon = $this->request->getPost('nama_calon');
         $wakilCalon = $this->request->getPost('wakil_calon');
-        $filename = strtolower(str_replace(' ', '_', $namaCalon . '_' . $wakilCalon)) . '.jpg';
+        $visi = $this->request->getPost('visi');
+        $misi = $this->request->getPost('misi');
+
+        // Gabungkan nama calon & wakil
+        $combinedName = $namaCalon . '_' . $wakilCalon;
+
+        // Ganti semua karakter non-alfanumerik dengan underscore
+        $cleanName = preg_replace('/[^a-zA-Z0-9]/', '_', $combinedName);
+
+        // Ganti beberapa underscore berturut-turut jadi satu
+        $cleanName = preg_replace('/_+/', '_', $cleanName);
+
+        // Hilangkan underscore di awal dan akhir
+        $cleanName = trim($cleanName, '_');
+
+        // Lowercase dan tambah ekstensi
+        $filename = strtolower($cleanName) . '.jpg';
         $path = 'uploads/calon/' . $filename;
 
-        if (!is_dir(FCPATH . 'uploads/calon')) mkdir(FCPATH . 'uploads/calon', 0777, true);
-        $foto->move(FCPATH . 'uploads/calon', $filename, true);
+        // Pastikan folder tujuan ada
+        if (!is_dir(WRITEPATH . 'uploads/calon')) {
+            mkdir(WRITEPATH . 'uploads/calon', 0777, true);
+        }
+        $foto->move(WRITEPATH . 'uploads/calon', $filename, true);
 
         $this->calonModel->insert([
             'admin_id' => session()->get('id'),
             'nama_calon' => $namaCalon,
             'wakil_calon' => $wakilCalon,
-            'visi' => $this->request->getPost('visi'),
-            'misi' => $this->request->getPost('misi'),
+            'visi'        => $visi !== '' ? $visi : null,
+            'misi'        => $misi !== '' ? $misi : null,
             'kategori_id' => $this->request->getPost('kategori_id'),
             'foto' => $path
         ]);
@@ -63,10 +82,15 @@ class Calon extends BaseController
     public function delete($id)
     {
         $data = $this->calonModel->find($id);
-        if ($data && file_exists(FCPATH . $data['foto'])) {
-            unlink(FCPATH . $data['foto']);
+        if ($data) {
+            $filePath = WRITEPATH . 'uploads/calon/' . basename($data['foto']);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            $this->calonModel->delete($id);
+            return redirect()->back()->with('success', 'Calon berhasil dihapus');
         }
-        $this->calonModel->delete($id);
-        return redirect()->back()->with('success', 'Calon berhasil dihapus');
+
+        return redirect()->back()->with('error', 'Data calon tidak ditemukan');
     }
 }
