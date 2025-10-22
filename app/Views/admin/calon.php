@@ -61,7 +61,7 @@
                         <img src="<?= base_url('foto/calon/' . basename($c['foto'])) ?>"
                             class="card-img-top"
                             alt="Foto Calon"
-                            style="height: 230.5px; object-fit: contain; background-color: #212529; cursor: pointer;"
+                            style="height: 222.6px; object-fit: contain; background-color: #212529; cursor: pointer;"
                             data-bs-toggle="modal"
                             data-bs-target="#fotoModal<?= $c['id'] ?>">
                         <div class="card-body">
@@ -148,7 +148,7 @@
                         </div>
                     </div>
                     <div class="col-md-6 text-center mx-auto">
-                        <canvas id="previewCanvas" style="display: none;" class="text-center"></canvas>
+                        <canvas id="previewCanvas" style="display: none;"></canvas>
                         <div id="fileSizeInfo" class="mt-2 text-muted" style="display: none;"></div>
                     </div>
                     <div class="col-md-12">
@@ -224,7 +224,7 @@
 
     function drawCanvas(imgCalon, imgWakil, namaCalon, wakilCalon) {
         const spacing = 20; // jarak antara calon dan wakil jika keduanya ada
-        const textHeight = 62; // tinggi teks di bawah foto
+        const textHeight = 62.5; // tinggi teks di bawah foto
         const padding = 10; // padding di dalam bingkai
 
         const heightTarget = imgWakil ? Math.max(imgCalon.height, imgWakil.height) : imgCalon.height;
@@ -265,14 +265,31 @@
         }
 
         canvas.style.display = 'block';
+        compressToUnder1MB(canvas);
+    }
 
-        // Hitung estimasi ukuran file blob
-        canvas.toBlob((blob) => {
-            const sizeKB = (blob.size / 1024).toFixed(2);
-            fileSizeInfo.textContent = `Estimasi ukuran file: ${sizeKB} KB`;
-        }, 'image/jpeg', 0.9);
+    function compressToUnder1MB(canvas) {
+        let quality = 0.9;
 
-        fileSizeInfo.style.display = 'block';
+        function tryCompress() {
+            canvas.toBlob((blob) => {
+                const sizeKB = blob.size / 1024;
+                const sizeMB = sizeKB / 1024;
+
+                if (sizeMB > 1 && quality > 0.2) {
+                    // Turunkan kualitas bertahap
+                    quality -= 0.1;
+                    tryCompress();
+                } else {
+                    // Selesai, tampilkan info ukuran akhir
+                    fileSizeInfo.textContent = `Estimasi ukuran file: ${sizeKB.toFixed(2)} KB (Quality ${quality.toFixed(1)})`;
+                    fileSizeInfo.style.display = 'block';
+                    console.log(`Final size: ${sizeKB.toFixed(2)} KB, Quality: ${quality.toFixed(1)}`);
+                }
+            }, 'image/jpeg', quality);
+        }
+
+        tryCompress();
     }
 
     // Event listener: trigger hanya saat file calon/wakil berubah
@@ -303,6 +320,11 @@
 
         if (fileWakil && !wakilCalon) {
             alert('Nama wakil calon wajib diisi jika foto wakil diunggah.');
+            return;
+        }
+
+        if (!fileWakil && wakilCalon) {
+            alert('File wakil calon wajib diunggah jika nama wakil diisi.');
             return;
         }
 
