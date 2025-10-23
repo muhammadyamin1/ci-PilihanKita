@@ -309,7 +309,11 @@
     });
 
     // Upload saat klik tombol Simpan
-    document.getElementById('uploadBtn').addEventListener('click', () => {
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    uploadBtn.addEventListener('click', () => {
+        if (uploadBtn.disabled) return; // mencegah klik ganda sebelum validasi dijalankan
+
         const namaCalon = document.getElementById('namaCalon').value.trim();
         const wakilCalon = document.getElementById('wakilCalon').value.trim();
         const fileWakil = document.getElementById('fotoWakil').files[0];
@@ -342,9 +346,16 @@
             return;
         }
 
+        // Mencegah klik ganda
+        uploadBtn.disabled = true;
+        const originalText = uploadBtn.textContent;
+        uploadBtn.textContent = "Menyimpan...";
+
         compressToUnder1MB(canvas, (blob) => {
             if (!blob) {
                 alert('Gagal membuat file gabungan. Pastikan foto calon valid.');
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = originalText;
                 return;
             }
 
@@ -361,6 +372,9 @@
                     body: formData
                 }).then(res => res.json())
                 .then(data => {
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = originalText;
+
                     if (data.success) {
                         alert('Calon berhasil ditambahkan!');
                         // bisa reset form & canvas
@@ -371,7 +385,11 @@
                         alert('Terjadi kesalahan: ' + data.error);
                     }
                 })
-                .catch(err => alert('Terjadi kesalahan jaringan: ' + err));
+                .catch(err => {
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = originalText;
+                    alert('Terjadi kesalahan jaringan: ' + err);
+                });
         });
     });
 
