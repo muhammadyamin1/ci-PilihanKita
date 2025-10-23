@@ -266,10 +266,9 @@
         }
 
         canvas.style.display = 'block';
-        compressToUnder1MB(canvas);
     }
 
-    function compressToUnder1MB(canvas) {
+    function compressToUnder1MB(canvas, callback) {
         let quality = 0.9;
 
         function tryCompress() {
@@ -287,6 +286,9 @@
                     fileSizeInfo.textContent = `Estimasi ukuran file: ${sizeKB.toFixed(2)} KB (Quality ${quality.toFixed(1)})`;
                     fileSizeInfo.style.display = 'block';
                     console.log(`Final size: ${sizeKB.toFixed(2)} KB, Quality: ${quality.toFixed(1)}`);
+                    if (typeof callback === 'function') {
+                        callback(blob);
+                    }
                 }
             }, 'image/jpeg', quality);
         }
@@ -340,35 +342,37 @@
             return;
         }
 
-        if (!compressedBlob) {
-            alert('Gagal membuat file gabungan. Pastikan foto calon valid.');
-            return;
-        }
+        compressToUnder1MB(canvas, (blob) => {
+            if (!blob) {
+                alert('Gagal membuat file gabungan. Pastikan foto calon valid.');
+                return;
+            }
 
-        const formData = new FormData();
-        formData.append('nama_calon', namaCalon);
-        formData.append('wakil_calon', wakilCalon);
-        formData.append('visi', visi || '');
-        formData.append('misi', misi || '');
-        formData.append('fotoGabungan', compressedBlob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
-        formData.append('kategori_id', kategoriId);
+            const formData = new FormData();
+            formData.append('nama_calon', namaCalon);
+            formData.append('wakil_calon', wakilCalon);
+            formData.append('visi', visi || '');
+            formData.append('misi', misi || '');
+            formData.append('fotoGabungan', blob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
+            formData.append('kategori_id', kategoriId);
 
-        fetch('<?= base_url("admin/calon/save") ?>', {
-                method: 'POST',
-                body: formData
-            }).then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Calon berhasil ditambahkan!');
-                    // bisa reset form & canvas
-                    document.getElementById('formCalon').reset();
-                    canvas.style.display = 'none';
-                    location.reload();
-                } else {
-                    alert('Terjadi kesalahan: ' + data.error);
-                }
-            })
-            .catch(err => alert('Terjadi kesalahan jaringan: ' + err));
+            fetch('<?= base_url("admin/calon/save") ?>', {
+                    method: 'POST',
+                    body: formData
+                }).then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Calon berhasil ditambahkan!');
+                        // bisa reset form & canvas
+                        document.getElementById('formCalon').reset();
+                        canvas.style.display = 'none';
+                        location.reload();
+                    } else {
+                        alert('Terjadi kesalahan: ' + data.error);
+                    }
+                })
+                .catch(err => alert('Terjadi kesalahan jaringan: ' + err));
+        });
     });
 
     document.getElementById('clearFotoCalon').addEventListener('click', () => {
