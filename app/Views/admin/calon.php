@@ -192,6 +192,7 @@
     const canvas = document.getElementById('previewCanvas');
     const fileSizeInfo = document.getElementById('fileSizeInfo');
     const ctx = canvas.getContext('2d');
+    let compressedBlob = null;
 
     function updatePreview() {
         const fileCalon = document.getElementById('fotoCalon').files[0];
@@ -224,7 +225,7 @@
 
     function drawCanvas(imgCalon, imgWakil, namaCalon, wakilCalon) {
         const spacing = 20; // jarak antara calon dan wakil jika keduanya ada
-        const textHeight = 62.5; // tinggi teks di bawah foto
+        const textHeight = 62; // tinggi teks di bawah foto
         const padding = 10; // padding di dalam bingkai
 
         const heightTarget = imgWakil ? Math.max(imgCalon.height, imgWakil.height) : imgCalon.height;
@@ -281,6 +282,7 @@
                     quality -= 0.1;
                     tryCompress();
                 } else {
+                    compressedBlob = blob;
                     // Selesai, tampilkan info ukuran akhir
                     fileSizeInfo.textContent = `Estimasi ukuran file: ${sizeKB.toFixed(2)} KB (Quality ${quality.toFixed(1)})`;
                     fileSizeInfo.style.display = 'block';
@@ -338,37 +340,35 @@
             return;
         }
 
-        canvas.toBlob((blob) => {
-            if (!blob) {
-                alert('Gagal membuat file gabungan. Pastikan foto calon valid.');
-                return;
-            }
+        if (!compressedBlob) {
+            alert('Gagal membuat file gabungan. Pastikan foto calon valid.');
+            return;
+        }
 
-            const formData = new FormData();
-            formData.append('nama_calon', namaCalon);
-            formData.append('wakil_calon', wakilCalon);
-            formData.append('visi', visi || '');
-            formData.append('misi', misi || '');
-            formData.append('fotoGabungan', blob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
-            formData.append('kategori_id', kategoriId);
+        const formData = new FormData();
+        formData.append('nama_calon', namaCalon);
+        formData.append('wakil_calon', wakilCalon);
+        formData.append('visi', visi || '');
+        formData.append('misi', misi || '');
+        formData.append('fotoGabungan', compressedBlob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
+        formData.append('kategori_id', kategoriId);
 
-            fetch('<?= base_url("admin/calon/save") ?>', {
-                    method: 'POST',
-                    body: formData
-                }).then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Calon berhasil ditambahkan!');
-                        // bisa reset form & canvas
-                        document.getElementById('formCalon').reset();
-                        canvas.style.display = 'none';
-                        location.reload();
-                    } else {
-                        alert('Terjadi kesalahan: ' + data.error);
-                    }
-                })
-                .catch(err => alert('Terjadi kesalahan jaringan: ' + err));
-        }, 'image/jpeg', 0.9);
+        fetch('<?= base_url("admin/calon/save") ?>', {
+                method: 'POST',
+                body: formData
+            }).then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Calon berhasil ditambahkan!');
+                    // bisa reset form & canvas
+                    document.getElementById('formCalon').reset();
+                    canvas.style.display = 'none';
+                    location.reload();
+                } else {
+                    alert('Terjadi kesalahan: ' + data.error);
+                }
+            })
+            .catch(err => alert('Terjadi kesalahan jaringan: ' + err));
     });
 
     document.getElementById('clearFotoCalon').addEventListener('click', () => {
