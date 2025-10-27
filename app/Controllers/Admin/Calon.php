@@ -76,7 +76,24 @@ class Calon extends BaseController
             'foto' => $path
         ]);
 
-        return $this->response->setJSON(['success' => true]);
+        $id = $this->calonModel->getInsertID();
+        $kategoriId = $this->request->getPost('kategori_id');
+
+        $kategoriModel = new \App\Models\KategoriModel();
+        $kategori = $kategoriModel->find($kategoriId);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'newCalon' => [
+                'id'           => $id,
+                'nama_calon'   => $namaCalon,
+                'wakil_calon'  => $wakilCalon,
+                'visi'         => $visi,
+                'misi'         => $misi,
+                'kategori'     => $kategori['nama'] ?? '',
+                'foto'         => base_url('foto/calon/' . basename($path)),
+            ]
+        ]);
     }
 
     public function delete($id)

@@ -15,6 +15,7 @@
     </div>
     <!--end::App Wrapper-->
     <!--begin::Script-->
+    <script src="<?= base_url('js/sweetalert2.js') ?>"></script>
     <!--begin::Third Party Plugin(OverlayScrollbars)-->
     <script
       src="<?= base_url('assets/adminlte/js/overlayscrollbars.min.js') ?>"

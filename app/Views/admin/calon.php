@@ -50,11 +50,18 @@
             </button>
         </div>
 
-        <?php if (session()->getFlashdata('success')): ?>
-            <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+        <?php if (session()->getFlashdata('success') || session()->getFlashdata('error')): ?>
+            <?php
+            $type = session()->getFlashdata('success') ? 'success' : 'danger';
+            $message = session()->getFlashdata('success') ?? session()->getFlashdata('error');
+            ?>
+            <div class="alert alert-<?= $type ?> alert-dismissible fade show" role="alert" id="flashdataAlert">
+                <?= esc($message) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         <?php endif; ?>
 
-        <div class="row">
+        <div class="row" id="calonList">
             <?php foreach ($calon as $c): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card shadow-sm border-0">
@@ -175,7 +182,6 @@
                 </div>
         </form>
     </div>
-</div>
 </div>
 
 <script>
@@ -376,13 +382,87 @@
                     uploadBtn.textContent = originalText;
 
                     if (data.success) {
-                        alert('Calon berhasil ditambahkan!');
-                        // bisa reset form & canvas
+                        // Tutup modal Bootstrap
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalTambah'));
+                        modal.hide();
+
+                        // Buat card baru sesuai HTML-mu
+                        const newCard = document.createElement('div');
+                        newCard.classList.add('col-md-4', 'mb-4');
+
+                        const fotoUrl = data.newCalon.foto;
+                        const id = data.newCalon.id;
+                        const namaCalon = data.newCalon.nama_calon;
+                        const wakilCalon = data.newCalon.wakil_calon;
+                        const kategori = data.newCalon.kategori;
+                        const visi = data.newCalon.visi || '';
+                        const misi = data.newCalon.misi || '';
+
+                        newCard.innerHTML = `
+                            <div class="card shadow-sm border-0">
+                                <img src="${fotoUrl}"
+                                    class="card-img-top"
+                                    alt="Foto Calon"
+                                    style="height: 222.6px; object-fit: contain; background-color: #212529; cursor: pointer;"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#fotoModal${id}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            ${namaCalon}${wakilCalon ? ' & ' + wakilCalon : ''}
+                                        </h6>
+                                        <span class="badge bg-success">${kategori}</span>
+                                    </div>
+                                    <hr style="margin: 6px 0px;">
+                                    ${visi ? `<p class="mb-1"><strong>Visi:</strong><br>${visi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
+                                    ${misi ? `<p class="mb-1"><strong>Misi:</strong><br>${misi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <a href="admin/calon/edit/${id}" class="btn btn-secondary btn-sm me-1">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        <a href="admin/calon/delete/${id}" 
+                                        onclick="return confirm('Hapus calon ini?')" 
+                                        class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Hapus
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="fotoModal${id}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" style="max-width: calc(68vh * 1.346);">
+                                    <div class="modal-content bg-dark">
+                                        <div class="modal-body p-0 text-center">
+                                            <img src="${fotoUrl}"
+                                                alt="Foto Calon"
+                                                class="img-fluid"
+                                                style="max-height: 68vh; object-fit: contain;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Tambahkan card ke dalam daftar setelah header
+                        document.getElementById('calonList').appendChild(newCard);
+
+                        // Reset form & canvas
                         document.getElementById('formCalon').reset();
                         canvas.style.display = 'none';
-                        location.reload();
+                        fileSizeInfo.style.display = 'none';
+
+                        // Beri feedback sukses kecil
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Calon berhasil ditambahkan!',
+                            showConfirmButton: false,
+                            timer: 1800
+                        });
                     } else {
-                        alert('Terjadi kesalahan: ' + data.error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal menambahkan calon',
+                            text: data.error || 'Terjadi kesalahan tak terduga.'
+                        });
                     }
                 })
                 .catch(err => {
@@ -403,6 +483,19 @@
         const input = document.getElementById('fotoWakil');
         input.value = ''; // reset file
         updatePreview(); // update canvas
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const alertBox = document.getElementById('flashdataAlert');
+        if (alertBox) {
+            const timeout = alertBox.classList.contains('alert-success') ? 4000 : 6000;
+
+            setTimeout(() => {
+                const alert = bootstrap.Alert.getOrCreateInstance(alertBox);
+                alert.close();
+            }, timeout);
+        }
     });
 </script>
 
