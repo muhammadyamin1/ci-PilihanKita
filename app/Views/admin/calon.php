@@ -89,7 +89,7 @@
                                 <hr style="margin: 6px 0;">
                             <?php endif; ?>
                             <div class="d-flex justify-content-end mt-3">
-                                <a href="<?= base_url('admin/calon/edit/' . $c['id']) ?>" class="btn btn-secondary btn-sm me-1">
+                                <a href="javascript:void(0)" class="btn btn-secondary btn-sm me-1 btnEditCalon" data-id="<?= $c['id'] ?>">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
                                 <a href="<?= base_url('admin/calon/delete/' . $c['id']) ?>"
@@ -128,6 +128,7 @@
             </div>
             <div class="modal-body">
                 <div class="row g-3">
+                    <input type="hidden" id="editId" name="id">
                     <div class="col-md-6">
                         <label class="form-label">Nama Calon</label>
                         <input type="text" id="namaCalon" name="nama_calon" class="form-control" required>
@@ -183,6 +184,7 @@
         </form>
     </div>
 </div>
+<!-- End Modal Tambah Calon -->
 
 <script>
     // Load font Liberation Sans lokal
@@ -322,29 +324,34 @@
 
         const namaCalon = document.getElementById('namaCalon').value.trim();
         const wakilCalon = document.getElementById('wakilCalon').value.trim();
+        const fileCalon = document.getElementById('fotoCalon').files[0];
         const fileWakil = document.getElementById('fotoWakil').files[0];
         let visi = document.querySelector('textarea[name="visi"]').value.trim();
         let misi = document.querySelector('textarea[name="misi"]').value.trim();
         const kategoriId = document.querySelector('select[name="kategori_id"]').value;
+        const idEdit = document.getElementById('editId').value;
+        const url = idEdit ? '<?= base_url("admin/calon/update") ?>' : '<?= base_url("admin/calon/save") ?>';
 
         if (!namaCalon) {
             alert('Nama calon wajib diisi.');
             return;
         }
 
-        if (fileWakil && !wakilCalon) {
-            alert('Nama wakil calon wajib diisi jika foto wakil diunggah.');
-            return;
-        }
+        if (!idEdit) {
+            if (fileWakil && !wakilCalon) {
+                alert('Nama wakil calon wajib diisi jika foto wakil diunggah.');
+                return;
+            }
 
-        if (!fileWakil && wakilCalon) {
-            alert('File wakil calon wajib diunggah jika nama wakil diisi.');
-            return;
-        }
+            if (!fileWakil && wakilCalon) {
+                alert('File wakil calon wajib diunggah jika nama wakil diisi.');
+                return;
+            }
 
-        if (!canvas || canvas.style.display === 'none') {
-            alert('Silakan pilih foto calon terlebih dahulu.');
-            return;
+            if (!canvas || canvas.style.display === 'none') {
+                alert('Silakan pilih foto calon terlebih dahulu.');
+                return;
+            }
         }
 
         if (!kategoriId) {
@@ -357,48 +364,80 @@
         const originalText = uploadBtn.textContent;
         uploadBtn.textContent = "Menyimpan...";
 
-        compressToUnder1MB(canvas, (blob) => {
-            if (!blob) {
-                alert('Gagal membuat file gabungan. Pastikan foto calon valid.');
-                uploadBtn.disabled = false;
-                uploadBtn.textContent = originalText;
-                return;
-            }
-
+        if (idEdit && !fileCalon && !fileWakil) {
             const formData = new FormData();
+            formData.append('id', idEdit);
             formData.append('nama_calon', namaCalon);
             formData.append('wakil_calon', wakilCalon);
             formData.append('visi', visi || '');
             formData.append('misi', misi || '');
-            formData.append('fotoGabungan', blob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
             formData.append('kategori_id', kategoriId);
 
-            fetch('<?= base_url("admin/calon/save") ?>', {
+            fetch(url, {
                     method: 'POST',
                     body: formData
                 }).then(res => res.json())
-                .then(data => {
+                .then(handleResponse)
+                .catch(handleError);
+        } else {
+            compressToUnder1MB(canvas, (blob) => {
+                if (!blob) {
+                    alert('Gagal membuat file gabungan. Pastikan foto calon valid.');
                     uploadBtn.disabled = false;
                     uploadBtn.textContent = originalText;
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('nama_calon', namaCalon);
+                formData.append('wakil_calon', wakilCalon);
+                formData.append('visi', visi || '');
+                formData.append('misi', misi || '');
+                formData.append('fotoGabungan', blob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
+                formData.append('kategori_id', kategoriId);
+                formData.append('id', idEdit);
 
-                    if (data.success) {
-                        // Tutup modal Bootstrap
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalTambah'));
-                        modal.hide();
+                fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    }).then(res => res.json())
+                    .then(handleResponse)
+                    .catch(handleError);
+            });
+        }
 
-                        // Buat card baru sesuai HTML-mu
-                        const newCard = document.createElement('div');
-                        newCard.classList.add('col-md-4', 'mb-4');
+        function handleResponse(data) {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = originalText;
 
-                        const fotoUrl = data.newCalon.foto;
-                        const id = data.newCalon.id;
-                        const namaCalon = data.newCalon.nama_calon;
-                        const wakilCalon = data.newCalon.wakil_calon;
-                        const kategori = data.newCalon.kategori;
-                        const visi = data.newCalon.visi || '';
-                        const misi = data.newCalon.misi || '';
+            if (data.success) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalTambah'));
+                modal.hide();
 
-                        newCard.innerHTML = `
+                if (idEdit) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Perubahan berhasil disimpan!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    setTimeout(() => location.reload(), 1600);
+                } else {
+                    // Tutup modal Bootstrap
+                    modal.hide();
+
+                    // Buat card baru sesuai HTML-mu
+                    const newCard = document.createElement('div');
+                    newCard.classList.add('col-md-4', 'mb-4');
+
+                    const fotoUrl = data.newCalon.foto;
+                    const id = data.newCalon.id;
+                    const namaCalon = data.newCalon.nama_calon;
+                    const wakilCalon = data.newCalon.wakil_calon;
+                    const kategori = data.newCalon.kategori;
+                    const visi = data.newCalon.visi || '';
+                    const misi = data.newCalon.misi || '';
+
+                    newCard.innerHTML = `
                             <div class="card shadow-sm border-0">
                                 <img src="${fotoUrl}"
                                     class="card-img-top"
@@ -417,7 +456,7 @@
                                     ${visi ? `<p class="mb-1"><strong>Visi:</strong><br>${visi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
                                     ${misi ? `<p class="mb-1"><strong>Misi:</strong><br>${misi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
                                     <div class="d-flex justify-content-end mt-3">
-                                        <a href="admin/calon/edit/${id}" class="btn btn-secondary btn-sm me-1">
+                                        <a href="javascript:void(0)" class="btn btn-secondary btn-sm me-1 btnEditCalon" data-id="${id}">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
                                         <a href="admin/calon/delete/${id}" 
@@ -442,35 +481,36 @@
                             </div>
                         `;
 
-                        // Tambahkan card ke dalam daftar setelah header
-                        document.getElementById('calonList').appendChild(newCard);
+                    // Tambahkan card ke dalam daftar setelah header
+                    document.getElementById('calonList').appendChild(newCard);
 
-                        // Reset form & canvas
-                        document.getElementById('formCalon').reset();
-                        canvas.style.display = 'none';
-                        fileSizeInfo.style.display = 'none';
+                    // Reset form & canvas
+                    document.getElementById('formCalon').reset();
+                    canvas.style.display = 'none';
+                    fileSizeInfo.style.display = 'none';
 
-                        // Beri feedback sukses kecil
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Calon berhasil ditambahkan!',
-                            showConfirmButton: false,
-                            timer: 1800
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal menambahkan calon',
-                            text: data.error || 'Terjadi kesalahan tak terduga.'
-                        });
-                    }
-                })
-                .catch(err => {
-                    uploadBtn.disabled = false;
-                    uploadBtn.textContent = originalText;
-                    alert('Terjadi kesalahan jaringan: ' + err);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Calon berhasil ditambahkan!',
+                        showConfirmButton: false,
+                        timer: 1800
+                    });
+                }
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal menyimpan calon',
+                    text: data.error || 'Terjadi kesalahan tak terduga.'
                 });
-        });
+            }
+        }
+
+        function handleError(err) {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = originalText;
+            alert('Terjadi kesalahan jaringan: ' + err);
+        }
+
     });
 
     document.getElementById('clearFotoCalon').addEventListener('click', () => {
@@ -483,6 +523,32 @@
         const input = document.getElementById('fotoWakil');
         input.value = ''; // reset file
         updatePreview(); // update canvas
+    });
+
+    // Saat klik tombol Edit
+    document.querySelectorAll('.btnEditCalon').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            fetch(`<?= base_url('admin/calon/get/') ?>${id}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        const data = res.data;
+                        document.getElementById('editId').value = data.id;
+                        document.getElementById('namaCalon').value = data.nama_calon;
+                        document.getElementById('wakilCalon').value = data.wakil_calon || '';
+                        document.querySelector('textarea[name="visi"]').value = data.visi || '';
+                        document.querySelector('textarea[name="misi"]').value = data.misi || '';
+                        document.querySelector('select[name="kategori_id"]').value = data.kategori_id;
+
+                        document.querySelector('.modal-title').textContent = 'Edit Calon';
+                        document.getElementById('uploadBtn').textContent = 'Simpan Perubahan';
+                        new bootstrap.Modal(document.getElementById('modalTambah')).show();
+                    } else {
+                        alert('Gagal mengambil data calon.');
+                    }
+                });
+        });
     });
 </script>
 <script>

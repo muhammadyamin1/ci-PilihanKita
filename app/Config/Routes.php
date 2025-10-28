@@ -18,6 +18,8 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
 
     $routes->get('calon', 'Admin\Calon::index');
     $routes->post('calon/save', 'Admin\Calon::save');
+    $routes->get('calon/get/(:num)', 'Admin\Calon::get/$1');
+    $routes->post('calon/update', 'Admin\Calon::update');
     $routes->get('calon/delete/(:num)', 'Admin\Calon::delete/$1');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {

@@ -96,6 +96,59 @@ class Calon extends BaseController
         ]);
     }
 
+    public function get($id)
+    {
+        $calon = $this->calonModel
+            ->select('calon.*, kategori_pemilihan.nama as kategori')
+            ->join('kategori_pemilihan', 'kategori_pemilihan.id = calon.kategori_id', 'left')
+            ->find($id);
+
+        if (!$calon) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Data tidak ditemukan']);
+        }
+
+        $calon['foto'] = base_url('foto/calon/' . basename($calon['foto']));
+        return $this->response->setJSON(['success' => true, 'data' => $calon]);
+    }
+
+    public function update()
+    {
+        $id = $this->request->getPost('id');
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'error' => 'ID calon tidak ditemukan.']);
+        }
+        $namaCalon = $this->request->getPost('nama_calon');
+        $wakilCalon = $this->request->getPost('wakil_calon');
+        $visi = $this->request->getPost('visi');
+        $misi = $this->request->getPost('misi');
+        $kategoriId = $this->request->getPost('kategori_id');
+
+        $data = [
+            'nama_calon' => $namaCalon,
+            'wakil_calon' => $wakilCalon,
+            'visi' => $visi,
+            'misi' => $misi,
+            'kategori_id' => $kategoriId,
+        ];
+
+        // Jika upload foto baru
+        $foto = $this->request->getFile('fotoGabungan');
+        if ($foto && $foto->isValid() && !$foto->hasMoved()) {
+            $filename = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $namaCalon . '_' . $wakilCalon)) . '.jpg';
+            $path = 'uploads/calon/' . $filename;
+
+            if (!is_dir(WRITEPATH . 'uploads/calon')) {
+                mkdir(WRITEPATH . 'uploads/calon', 0777, true);
+            }
+            $foto->move(WRITEPATH . 'uploads/calon', $filename, true);
+            $data['foto'] = $path;
+        }
+
+        $this->calonModel->update($id, $data);
+
+        return $this->response->setJSON(['success' => true]);
+    }
+
     public function delete($id)
     {
         $data = $this->calonModel->find($id);
