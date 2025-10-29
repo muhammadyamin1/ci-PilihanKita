@@ -92,11 +92,9 @@
                                 <a href="javascript:void(0)" class="btn btn-secondary btn-sm me-1 btnEditCalon" data-id="<?= $c['id'] ?>">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
-                                <a href="<?= base_url('admin/calon/delete/' . $c['id']) ?>"
-                                    onclick="return confirm('Hapus calon ini?')"
-                                    class="btn btn-danger btn-sm">
+                                <button class="btn btn-danger btn-sm btnDeleteCalon" data-id="<?= $c['id'] ?>">
                                     <i class="bi bi-trash"></i> Hapus
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -337,12 +335,12 @@
             return;
         }
 
-        if (!idEdit) {
-            if (fileWakil && !wakilCalon) {
-                alert('Nama wakil calon wajib diisi jika foto wakil diunggah.');
-                return;
-            }
+        if (fileWakil && !wakilCalon) {
+            alert('Nama wakil calon wajib diisi jika foto wakil diunggah.');
+            return;
+        }
 
+        if (!idEdit) {
             if (!fileWakil && wakilCalon) {
                 alert('File wakil calon wajib diunggah jika nama wakil diisi.');
                 return;
@@ -459,11 +457,9 @@
                                         <a href="javascript:void(0)" class="btn btn-secondary btn-sm me-1 btnEditCalon" data-id="${id}">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
-                                        <a href="admin/calon/delete/${id}" 
-                                        onclick="return confirm('Hapus calon ini?')" 
-                                        class="btn btn-danger btn-sm">
+                                        <button class="btn btn-danger btn-sm btnDeleteCalon" data-id="${id}">
                                             <i class="bi bi-trash"></i> Hapus
-                                        </a>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -526,9 +522,11 @@
     });
 
     // Saat klik tombol Edit
-    document.querySelectorAll('.btnEditCalon').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btnEditCalon')) {
+            const btn = e.target.closest('.btnEditCalon');
+            const id = btn.dataset.id;
+
             fetch(`<?= base_url('admin/calon/get/') ?>${id}`)
                 .then(res => res.json())
                 .then(res => {
@@ -548,7 +546,61 @@
                         alert('Gagal mengambil data calon.');
                     }
                 });
-        });
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.btnDeleteCalon');
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
+
+            Swal.fire({
+                title: 'Yakin hapus calon ini?',
+                text: "Data tidak bisa dikembalikan setelah dihapus!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`<?= base_url('admin/calon/delete/') ?>${id}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': '<?= csrf_hash() ?>'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Calon berhasil dihapus',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                                const card = deleteBtn.closest('.col-md-4');
+                                if (card) card.remove();
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal menghapus calon',
+                                    text: data.error || 'Terjadi kesalahan tak terduga.'
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal menghapus calon',
+                                text: 'Kesalahan jaringan: ' + err
+                            });
+                        });
+                }
+            });
+        }
     });
 </script>
 <script>

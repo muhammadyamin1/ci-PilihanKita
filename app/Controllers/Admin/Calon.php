@@ -157,8 +157,18 @@ class Calon extends BaseController
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
+
             $this->calonModel->delete($id);
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['success' => true]);
+            }
+
             return redirect()->back()->with('success', 'Calon berhasil dihapus');
+        }
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => false, 'error' => 'Data calon tidak ditemukan']);
         }
 
         return redirect()->back()->with('error', 'Data calon tidak ditemukan');
