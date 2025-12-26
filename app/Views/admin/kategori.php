@@ -147,6 +147,15 @@
 
 <script src="<?= base_url('js/axios.min.js') ?>"></script>
 <script>
+    // Ambil base URL CI4 (termasuk subfolder jika ada)
+    // Di localhost: http://localhost/ci-PilihanKita/
+    // Di production: https://namadomain.com/
+    const BASE_URL = '<?= base_url() ?>';
+
+    // Konfigurasi global axios
+    axios.defaults.baseURL = BASE_URL;
+</script>
+<script>
     function showFlash(message, type = 'success') {
         const alert = `
         <div class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -195,8 +204,17 @@
                     </div>`;
                 }
             })
-            .catch(() => {
-                showFlash('Gagal mengubah status kategori', 'danger');
+            .catch(e => {
+                let pesanError = 'Terjadi kesalahan tak terduga.';
+
+                // Jika 'e' adalah objek respons fetch atau memiliki pesan kesalahan
+                if (e && e.message) {
+                    pesanError = e.message;
+                } else if (typeof e === 'string') {
+                    pesanError = e;
+                }
+
+                showFlash('Gagal mengubah status kategori. Detail: ' + pesanError, 'danger');
                 clickedCheckbox.checked = wasChecked;
             })
             .finally(() => {
