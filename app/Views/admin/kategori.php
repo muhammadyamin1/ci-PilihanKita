@@ -139,7 +139,7 @@
                 <input type="text" name="nama" class="form-control" placeholder="Nama kategori..." required>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-success">Simpan</button>
+                <button type="submit" id="btnSubmit" class="btn btn-success">Simpan</button>
             </div>
         </form>
     </div>
@@ -167,7 +167,7 @@
         flash.innerHTML = alert;
 
         // Durasi tampil: 5 detik kalau success, 10 detik kalau selain itu
-        const duration = (type === 'success') ? 5000 : 10000;
+        const duration = (type === 'success') ? 5000 : 15000;
 
         setTimeout(() => {
             flash.innerHTML = '';
@@ -248,9 +248,16 @@
                 }
             })
             .catch(error => {
-                const msg = error.response?.data?.message ||
-                    'Gagal menghapus kategori karena alasan tidak diketahui.';
-                showFlash(msg, 'danger');
+                let msg = 'Terjadi kesalahan tak terduga.';
+
+                // Jika 'e' adalah objek respons fetch atau memiliki pesan kesalahan
+                if (error && error.message) {
+                    msg = error.message;
+                } else if (typeof e === 'string') {
+                    msg = error;
+                }
+
+                showFlash('Gagal menghapus kategori. Detail: ' + msg, 'danger');
             });
     }
 
@@ -270,6 +277,9 @@
         // Handler submit form tetap seperti sebelumnya
         document.getElementById('formTambah').addEventListener('submit', function(e) {
             e.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Menyimpan...';
             axios.post('/admin/kategori/store', new FormData(this))
                 .then(res => {
                     if (res.data.success) {
@@ -303,11 +313,31 @@
                         `;
                         tbody.appendChild(newRow);
 
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Simpan';
+
                         // Kosongkan form input
                         document.getElementById('formTambah').reset();
                     }
                 })
-                .catch(() => showFlash('Gagal menambah kategori', 'danger'));
+                .catch(error => {
+                    let msg = 'Terjadi kesalahan tak terduga.';
+
+                    // Jika 'e' adalah objek respons fetch atau memiliki pesan kesalahan
+                    if (error && error.message) {
+                        msg = error.message;
+                    } else if (typeof e === 'string') {
+                        msg = error;
+                    }
+
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Simpan';
+
+                    // Tutup modal
+                    const modal = bootstrap.Modal.getInstance(modalTambahEl);
+                    modal.hide();
+                    showFlash('Gagal menambah kategori. Detail: ' + msg, 'danger');
+                });
         });
     });
 </script>

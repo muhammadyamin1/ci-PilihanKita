@@ -73,10 +73,10 @@
                             data-bs-target="#fotoModal<?= $c['id'] ?>">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">
+                                <h4 class="mb-0">
                                     <?= esc($c['nama_calon']) ?>
                                     <?= !empty($c['wakil_calon']) ? ' & ' . esc($c['wakil_calon']) : '' ?>
-                                </h6>
+                                </h4>
                                 <span class="badge bg-success"><?= esc($c['kategori']) ?></span>
                             </div>
                             <hr style="margin: 6px 0px;">
@@ -89,10 +89,10 @@
                                 <hr style="margin: 6px 0;">
                             <?php endif; ?>
                             <div class="d-flex justify-content-end mt-3">
-                                <a href="javascript:void(0)" class="btn btn-secondary btn-sm me-1 btnEditCalon" data-id="<?= $c['id'] ?>">
+                                <a href="javascript:void(0)" class="btn btn-secondary btn-sm w-100 me-1 btnEditCalon" data-id="<?= $c['id'] ?>">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
-                                <button class="btn btn-danger btn-sm btnDeleteCalon" data-id="<?= $c['id'] ?>">
+                                <button class="btn btn-danger btn-sm w-100 btnDeleteCalon" data-id="<?= $c['id'] ?>">
                                     <i class="bi bi-trash"></i> Hapus
                                 </button>
                             </div>
@@ -454,10 +454,10 @@
                                     ${visi ? `<p class="mb-1"><strong>Visi:</strong><br>${visi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
                                     ${misi ? `<p class="mb-1"><strong>Misi:</strong><br>${misi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
                                     <div class="d-flex justify-content-end mt-3">
-                                        <a href="javascript:void(0)" class="btn btn-secondary btn-sm me-1 btnEditCalon" data-id="${id}">
+                                        <a href="javascript:void(0)" class="btn btn-secondary btn-sm w-100 me-1 btnEditCalon" data-id="${id}">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
-                                        <button class="btn btn-danger btn-sm btnDeleteCalon" data-id="${id}">
+                                        <button class="btn btn-danger btn-sm w-100 btnDeleteCalon" data-id="${id}">
                                             <i class="bi bi-trash"></i> Hapus
                                         </button>
                                     </div>
