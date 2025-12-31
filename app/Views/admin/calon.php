@@ -155,7 +155,6 @@
                     </div>
                     <div class="col-md-6 text-center mx-auto">
                         <canvas id="previewCanvas" style="display: none;"></canvas>
-                        <div id="fileSizeInfo" class="mt-2 text-muted" style="display: none;"></div>
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Visi</label>
@@ -196,7 +195,7 @@
 </script>
 <script>
     const canvas = document.getElementById('previewCanvas');
-    const fileSizeInfo = document.getElementById('fileSizeInfo');
+    let finalFileSizeText = '';
     const ctx = canvas.getContext('2d');
     let compressedBlob = null;
 
@@ -208,7 +207,6 @@
 
         if (!fileCalon) {
             canvas.style.display = 'none';
-            fileSizeInfo.style.display = 'none';
             return;
         }
 
@@ -288,9 +286,8 @@
                     tryCompress();
                 } else {
                     compressedBlob = blob;
-                    // Selesai, tampilkan info ukuran akhir
-                    fileSizeInfo.textContent = `Estimasi ukuran file: ${sizeKB.toFixed(2)} KB (Quality ${quality.toFixed(1)})`;
-                    fileSizeInfo.style.display = 'block';
+                    // Selesai, tampilkan info ukuran akhir (disimpan untuk SweetAlert)
+                    finalFileSizeText = `Estimasi ukuran file: ${sizeKB.toFixed(2)} KB (Quality ${quality.toFixed(1)})`;
                     console.log(`Final size: ${sizeKB.toFixed(2)} KB, Quality: ${quality.toFixed(1)}`);
                     if (typeof callback === 'function') {
                         callback(blob);
@@ -445,9 +442,9 @@
                                     data-bs-target="#fotoModal${id}">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
+                                        <h4 class="mb-0">
                                             ${namaCalon}${wakilCalon ? ' & ' + wakilCalon : ''}
-                                        </h6>
+                                        </h4>
                                         <span class="badge bg-success">${kategori}</span>
                                     </div>
                                     <hr style="margin: 6px 0px;">
@@ -483,13 +480,16 @@
                     // Reset form & canvas
                     document.getElementById('formCalon').reset();
                     canvas.style.display = 'none';
-                    fileSizeInfo.style.display = 'none';
+
+                    // Ambil info ukuran file
+                    const sizeText = finalFileSizeText;
 
                     Swal.fire({
                         icon: 'success',
                         title: 'Calon berhasil ditambahkan!',
-                        showConfirmButton: false,
-                        timer: 1800
+                        html: sizeText ? `<p>${sizeText}</p>` : '',
+                        confirmButtonText: 'OK',
+                        timer: 7000
                     });
                 }
             } else {

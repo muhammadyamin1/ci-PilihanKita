@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 18 Okt 2025 pada 11.55
+-- Waktu pembuatan: 31 Des 2025 pada 07.11
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -37,6 +37,13 @@ CREATE TABLE `calon` (
   `foto` varchar(255) DEFAULT NULL,
   `kategori_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `calon`
+--
+
+INSERT INTO `calon` (`id`, `admin_id`, `nama_calon`, `wakil_calon`, `visi`, `misi`, `foto`, `kategori_id`) VALUES
+(76, 1, 'Ari', 'Budi', 'Kampus Emas 2044', '1. Meningkatkan kompetensi mahasiswa/i.\r\n2. Membuat lingkungan kampus adil dan sejahtera.', 'uploads/calon/ari_budi.jpg', 4);
 
 -- --------------------------------------------------------
 
@@ -164,7 +171,7 @@ ALTER TABLE `user_import_log`
 -- AUTO_INCREMENT untuk tabel `calon`
 --
 ALTER TABLE `calon`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT untuk tabel `kategori_pemilihan`

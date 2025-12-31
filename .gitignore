@@ -9,3 +9,8 @@ writable/logs/*
 # Ignore session files
 writable/session/*
 !writable/session/.gitkeep
+
+# Ignore all uploads
+writable/uploads/*
+!writable/uploads/calon/
+!writable/uploads/calon/.gitkeep
