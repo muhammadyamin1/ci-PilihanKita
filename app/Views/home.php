@@ -210,8 +210,8 @@
                     <div class="col-md-7 ps-md-4">
                         <h6 class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Pilihan Kita v1.0</h6>
                         <p class="text-secondary small">
-                            Sistem voting berbasis web yang dirancang untuk memastikan integritas data dengan kemudahan antarmuka pengguna.
-                            Dibangun dengan CodeIgniter 4, sistem ini menerapkan prinsip integritas data melalui validasi server-side yang ketat dan manajemen basis data MariaDB yang teroptimasi.
+                            Aplikasi voting berbasis web yang dikembangkan untuk melakukan proses pemungutan suara dengan mudah dan efisien.
+                            Menggunakan CodeIgniter 4 sebagai fondasi utama, aplikasi ini didukung dengan proses validasi data yang terkontrol untuk menjaga keakuratan informasi dan pengelolaan database MariaDB yang andal guna menjaga konsistensi dan keamanan data.
                         </p>
                         
                         <h6 class="fw-bold mt-4 mb-2 small text-uppercase text-muted">Tech Stack yang Digunakan:</h6>

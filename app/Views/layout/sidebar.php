@@ -3,7 +3,7 @@
   <!--begin::Sidebar Brand-->
   <div class="sidebar-brand">
     <!--begin::Brand Link-->
-    <a href="./index.html" class="brand-link">
+    <a href="<?= base_url('admin/dashboard') ?>" class="brand-link">
       <!--begin::Brand Image-->
       <div class="brand-image opacity-75 shadow">
         🗳
