@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 31 Des 2025 pada 07.11
+-- Waktu pembuatan: 03 Jan 2026 pada 05.53
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -93,7 +93,7 @@ CREATE TABLE `users` (
   `username` varchar(50) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `nama` varchar(100) DEFAULT NULL,
-  `identifier` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
   `role` enum('admin','user') DEFAULT 'user',
   `generated` tinyint(1) DEFAULT 0,
   `sudah_memilih` tinyint(1) DEFAULT 0,
@@ -104,7 +104,7 @@ CREATE TABLE `users` (
 -- Dumping data untuk tabel `users`
 --
 
-INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `identifier`, `role`, `generated`, `sudah_memilih`, `created_at`) VALUES
+INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `generated`, `sudah_memilih`, `created_at`) VALUES
 (1, NULL, 'yamin123', '$2y$10$a6f5B5ew9PIljHVpPgv2meNXKXETmD5fcObzNgXuB1wexJHXE5j7S', 'Administrator', NULL, 'admin', 0, 0, '2025-10-16 10:28:48'),
 (2, NULL, 'user', '$2y$10$VGlqMFgkDUu0j5Mq5TggZOAnT55sJ4ikqJOH.YmoXXWwG8PYJQTy6', 'User', NULL, 'user', 0, 0, '2025-10-16 10:29:49');
 

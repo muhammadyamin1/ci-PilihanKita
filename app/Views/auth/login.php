@@ -63,6 +63,12 @@
         <label class="form-check-label" for="showPassword">Tampilkan Password</label>
       </div>
       <button type="submit" class="btn btn-lg btn-primary w-100">Login</button>
+      <div class="text-center mt-3">
+        <a href="<?= base_url('forgot-password') ?>" class="text-muted" style="font-size: 14px;">
+          Lupa password?
+        </a>
+      </div>
+
     </form>
   </div>
 

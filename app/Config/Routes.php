@@ -6,8 +6,12 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');         // Landing page
+
 $routes->get('login', 'Auth::index');     // Form login
 $routes->post('login', 'Auth::login');  // Proses login
+$routes->get('forgot-password', 'Auth::forgotPassword');
+$routes->post('forgot-password', 'Auth::processForgotPassword');
+
 $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
 
@@ -21,6 +25,8 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('calon/get/(:num)', 'Admin\Calon::get/$1');
     $routes->post('calon/update', 'Admin\Calon::update');
     $routes->post('calon/delete/(:num)', 'Admin\Calon::delete/$1');
+
+    $routes->get('pemilih', 'Admin\Pemilih::index');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
