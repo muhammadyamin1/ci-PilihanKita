@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers\Pemilih;
+namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\PemilihModel;
@@ -9,9 +9,7 @@ class Pemilih extends BaseController
 {
     public function index()
     {
-        $model = new PemilihModel();
-        $data['pemilih'] = $model->findAll();
 
-        return view('admin/pemilih', $data);
+        return view('admin/pemilih');
     }
 }
