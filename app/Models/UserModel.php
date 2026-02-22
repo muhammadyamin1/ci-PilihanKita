@@ -15,6 +15,7 @@ class UserModel extends Model
         'nama',
         'identifier',
         'role',
+        'kategori_id',
         'generated',
         'sudah_memilih',
         'created_at'

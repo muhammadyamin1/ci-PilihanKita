@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 03 Jan 2026 pada 05.53
+-- Waktu pembuatan: 22 Feb 2026 pada 09.20
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -64,7 +64,7 @@ CREATE TABLE `kategori_pemilihan` (
 
 INSERT INTO `kategori_pemilihan` (`id`, `nama`, `aktif`, `admin_id`) VALUES
 (1, 'Ketua Kelas', 0, 1),
-(2, 'OSIS', 0, 1),
+(2, 'OSIS', 1, 1),
 (3, 'Kating', 0, 1),
 (4, 'BEM', 0, 1);
 
@@ -95,6 +95,7 @@ CREATE TABLE `users` (
   `nama` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `role` enum('admin','user') DEFAULT 'user',
+  `kategori_id` int(11) DEFAULT NULL,
   `generated` tinyint(1) DEFAULT 0,
   `sudah_memilih` tinyint(1) DEFAULT 0,
   `created_at` datetime DEFAULT current_timestamp()
@@ -104,9 +105,9 @@ CREATE TABLE `users` (
 -- Dumping data untuk tabel `users`
 --
 
-INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `generated`, `sudah_memilih`, `created_at`) VALUES
-(1, NULL, 'yamin123', '$2y$10$a6f5B5ew9PIljHVpPgv2meNXKXETmD5fcObzNgXuB1wexJHXE5j7S', 'Administrator', NULL, 'admin', 0, 0, '2025-10-16 10:28:48'),
-(2, NULL, 'user', '$2y$10$VGlqMFgkDUu0j5Mq5TggZOAnT55sJ4ikqJOH.YmoXXWwG8PYJQTy6', 'User', NULL, 'user', 0, 0, '2025-10-16 10:29:49');
+INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `kategori_id`, `generated`, `sudah_memilih`, `created_at`) VALUES
+(1, NULL, 'yamin123', '$2y$10$a6f5B5ew9PIljHVpPgv2meNXKXETmD5fcObzNgXuB1wexJHXE5j7S', 'Administrator', NULL, 'admin', NULL, 0, 0, '2025-10-16 10:28:48'),
+(2, NULL, 'user', '$2y$10$VGlqMFgkDUu0j5Mq5TggZOAnT55sJ4ikqJOH.YmoXXWwG8PYJQTy6', 'User', NULL, 'user', NULL, 0, 0, '2025-10-16 10:29:49');
 
 -- --------------------------------------------------------
 
@@ -154,7 +155,8 @@ ALTER TABLE `suara`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_users_admin` (`admin_id`);
+  ADD KEY `fk_users_admin` (`admin_id`),
+  ADD KEY `fk_users_kategori` (`kategori_id`);
 
 --
 -- Indeks untuk tabel `user_import_log`
@@ -171,7 +173,7 @@ ALTER TABLE `user_import_log`
 -- AUTO_INCREMENT untuk tabel `calon`
 --
 ALTER TABLE `calon`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT untuk tabel `kategori_pemilihan`
@@ -225,7 +227,8 @@ ALTER TABLE `suara`
 -- Ketidakleluasaan untuk tabel `users`
 --
 ALTER TABLE `users`
-  ADD CONSTRAINT `fk_users_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_users_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_users_kategori` FOREIGN KEY (`kategori_id`) REFERENCES `kategori_pemilihan` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `user_import_log`

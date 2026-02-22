@@ -27,6 +27,9 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->post('calon/delete/(:num)', 'Admin\Calon::delete/$1');
 
     $routes->get('pemilih', 'Admin\Pemilih::index');
+    $routes->get('pemilih/tambah', 'Admin\Pemilih::create');
+    $routes->post('pemilih/simpan', 'Admin\Pemilih::store');
+    $routes->post('pemilih/hapus/(:num)', 'Admin\Pemilih::hapus/$1');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
