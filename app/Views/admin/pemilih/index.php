@@ -113,7 +113,7 @@
                             ?>
 
                             <?php foreach ($users as $u) : ?>
-                                <tr>
+                                <tr class="align-middle">
                                     <td class="text-center"><?= $no++; ?></td>
                                     <td><?= esc($u['username']); ?></td>
                                     <td><?= esc($u['nama']); ?></td>
@@ -146,28 +146,37 @@
                                         <?php endif; ?>
                                     </td>
 
-                                    <td class="text-center">
-                                        <a href="<?= base_url('admin/pemilih/edit/' . $u['id']) ?>"
-                                            class="btn btn-sm btn-outline-info">
-                                            Edit
-                                        </a>
-                                        <a href="<?= base_url('admin/pemilih/reset/' . $u['id']) ?>"
-                                            class="btn btn-sm btn-outline-secondary">
-                                            Reset
-                                        </a>
-                                        <form action="<?= base_url('admin/pemilih/hapus/' . $u['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus user ini?')">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                Hapus
-                                            </button>
-                                        </form>
+                                    <td class="text-center" width="20%">
+                                        <div class="btn-group" role="group">
+                                            <a href="<?= base_url('admin/pemilih/edit/' . $u['id']) ?>"
+                                                class="btn btn-sm btn-outline-info"
+                                                data-bs-toggle="tooltip"
+                                                title="Edit Data Pemilih">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            <a href="<?= base_url('admin/pemilih/reset/' . $u['id']) ?>"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                data-bs-toggle="tooltip"
+                                                title="Reset Password">
+                                                <i class="bi bi-arrow-clockwise"></i> Reset
+                                            </a>
+                                            <form action="<?= base_url('admin/pemilih/hapus/' . $u['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus user ini?')">
+                                                <?= csrf_field() ?>
+                                                <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Hapus Pemilih">
+                                                    <i class="bi bi-trash"></i> Hapus
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
 
                         <?php else : ?>
                             <tr>
-                                <td colspan="8" class="text-center py-4">
+                                <td colspan="9" class="text-center py-4">
                                     Belum ada data pemilih
                                 </td>
                             </tr>
@@ -185,4 +194,24 @@
         </div>
     </div>
 </div>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Auto-hide alerts after 10 seconds
+setTimeout(function() {
+    var alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        var bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+    });
+}, 10000);
+</script>
+
 <?= $this->endSection(); ?>

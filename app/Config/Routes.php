@@ -30,6 +30,10 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('pemilih/tambah', 'Admin\Pemilih::create');
     $routes->post('pemilih/simpan', 'Admin\Pemilih::store');
     $routes->post('pemilih/hapus/(:num)', 'Admin\Pemilih::hapus/$1');
+    $routes->match(['get', 'post'], 'pemilih/generate', 'Admin\Pemilih::generate');
+    $routes->post('pemilih/update-nama/(:num)', 'Admin\Pemilih::updateNama/$1');
+    $routes->post('pemilih/update-all-nama', 'Admin\Pemilih::updateAllNames');
+    $routes->get('pemilih/download-csv/(:any)', 'Admin\Pemilih::downloadCsv/$1');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
