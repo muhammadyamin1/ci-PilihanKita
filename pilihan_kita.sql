@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 22 Feb 2026 pada 09.20
+-- Waktu pembuatan: 24 Apr 2026 pada 10.09
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -20,6 +20,26 @@ SET time_zone = "+00:00";
 --
 -- Database: `pilihan_kita`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `admin_activity_log`
+--
+
+CREATE TABLE `admin_activity_log` (
+  `id` int(11) NOT NULL,
+  `admin_id` int(11) DEFAULT NULL,
+  `action` varchar(50) DEFAULT NULL,
+  `target_type` varchar(50) DEFAULT NULL,
+  `target_id` int(11) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `old_value` text DEFAULT NULL,
+  `new_value` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -128,6 +148,15 @@ CREATE TABLE `user_import_log` (
 --
 
 --
+-- Indeks untuk tabel `admin_activity_log`
+--
+ALTER TABLE `admin_activity_log`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_admin_id` (`admin_id`),
+  ADD KEY `idx_target` (`target_type`,`target_id`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
 -- Indeks untuk tabel `calon`
 --
 ALTER TABLE `calon`
@@ -168,6 +197,12 @@ ALTER TABLE `user_import_log`
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
+
+--
+-- AUTO_INCREMENT untuk tabel `admin_activity_log`
+--
+ALTER TABLE `admin_activity_log`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `calon`

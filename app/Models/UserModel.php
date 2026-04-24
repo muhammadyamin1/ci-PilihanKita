@@ -13,6 +13,7 @@ class UserModel extends Model
         'username',
         'password',
         'nama',
+        'email',
         'identifier',
         'role',
         'kategori_id',

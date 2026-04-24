@@ -29,6 +29,10 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('pemilih', 'Admin\Pemilih::index');
     $routes->get('pemilih/tambah', 'Admin\Pemilih::create');
     $routes->post('pemilih/simpan', 'Admin\Pemilih::store');
+    $routes->get('pemilih/edit/(:num)', 'Admin\Pemilih::edit/$1');
+    $routes->post('pemilih/update/(:num)', 'Admin\Pemilih::update/$1');
+    $routes->get('pemilih/reset-form/(:num)', 'Admin\Pemilih::resetForm/$1');
+    $routes->post('pemilih/reset/(:num)', 'Admin\Pemilih::reset/$1');
     $routes->post('pemilih/hapus/(:num)', 'Admin\Pemilih::hapus/$1');
     $routes->match(['get', 'post'], 'pemilih/generate', 'Admin\Pemilih::generate');
     $routes->post('pemilih/update-nama/(:num)', 'Admin\Pemilih::updateNama/$1');

@@ -146,19 +146,19 @@
                                         <?php endif; ?>
                                     </td>
 
-                                    <td class="text-center" width="20%">
+                                    <td class="text-center" width="10%">
                                         <div class="btn-group" role="group">
                                             <a href="<?= base_url('admin/pemilih/edit/' . $u['id']) ?>"
                                                 class="btn btn-sm btn-outline-info"
                                                 data-bs-toggle="tooltip"
                                                 title="Edit Data Pemilih">
-                                                <i class="bi bi-pencil"></i> Edit
+                                                <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="<?= base_url('admin/pemilih/reset/' . $u['id']) ?>"
+                                            <a href="<?= base_url('admin/pemilih/reset-form/' . $u['id']) ?>"
                                                 class="btn btn-sm btn-outline-secondary"
                                                 data-bs-toggle="tooltip"
                                                 title="Reset Password">
-                                                <i class="bi bi-arrow-clockwise"></i> Reset
+                                                <i class="bi bi-arrow-clockwise"></i>
                                             </a>
                                             <form action="<?= base_url('admin/pemilih/hapus/' . $u['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus user ini?')">
                                                 <?= csrf_field() ?>
@@ -166,7 +166,7 @@
                                                     class="btn btn-sm btn-outline-danger"
                                                     data-bs-toggle="tooltip"
                                                     title="Hapus Pemilih">
-                                                    <i class="bi bi-trash"></i> Hapus
+                                                    <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
                                         </div>

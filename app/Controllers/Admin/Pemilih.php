@@ -296,4 +296,178 @@ class Pemilih extends BaseController
         echo $output;
         exit;
     }
+
+    /**
+     * Tampilkan form edit pemilih
+     */
+    public function edit($id)
+    {
+        $userModel = new \App\Models\UserModel();
+        $kategoriModel = new \App\Models\KategoriModel();
+
+        $user = $userModel
+            ->where('id', $id)
+            ->where('admin_id', session()->get('id'))
+            ->first();
+
+        if (!$user) {
+            return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
+        }
+
+        $kategori = $kategoriModel
+            ->where('admin_id', session()->get('id'))
+            ->findAll();
+
+        return view('admin/pemilih/edit', [
+            'user' => $user,
+            'kategori' => $kategori
+        ]);
+    }
+
+    /**
+     * Proses update data pemilih
+     */
+    public function update($id)
+    {
+        $userModel = new \App\Models\UserModel();
+        $kategoriModel = new \App\Models\KategoriModel();
+
+        $user = $userModel
+            ->where('id', $id)
+            ->where('admin_id', session()->get('id'))
+            ->first();
+
+        if (!$user) {
+            return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
+        }
+
+        $kategori_id = $this->request->getPost('kategori_id');
+
+        // Validasi kategori milik admin
+        if ($kategori_id) {
+            $cekKategori = $kategoriModel
+                ->where('id', $kategori_id)
+                ->where('admin_id', session()->get('id'))
+                ->first();
+
+            if (!$cekKategori) {
+                return redirect()->back()->with('error', 'Kategori tidak valid.');
+            }
+        }
+
+        $oldData = [
+            'nama' => $user['nama'],
+            'email' => $user['email'],
+            'kategori_id' => $user['kategori_id']
+        ];
+
+        $newData = [
+            'nama' => $this->request->getPost('nama'),
+            'email' => $this->request->getPost('email') ?: null,
+            'kategori_id' => $kategori_id ?: null
+        ];
+
+        $userModel->update($id, $newData);
+
+        // Log aktivitas
+        $logModel = new \App\Models\AdminActivityLogModel();
+        $logModel->logActivity(
+            session()->get('id'),
+            'update',
+            'pemilih',
+            $id,
+            'Mengedit data pemilih: ' . $user['username'],
+            $oldData,
+            $newData
+        );
+
+        return redirect()->to('/admin/pemilih')->with('success', 'Data pemilih berhasil diupdate.');
+    }
+
+    /**
+     * Tampilkan form reset password dengan alasan
+     */
+    public function resetForm($id)
+    {
+        $userModel = new \App\Models\UserModel();
+
+        $user = $userModel
+            ->where('id', $id)
+            ->where('admin_id', session()->get('id'))
+            ->first();
+
+        if (!$user) {
+            return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
+        }
+
+        return view('admin/pemilih/reset', [
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Proses reset password dengan alasan wajib
+     */
+    public function reset($id)
+    {
+        $userModel = new \App\Models\UserModel();
+        
+        // Ambil alasan dari select atau textarea
+        $alasan_pilihan = $this->request->getPost('alasan_pilihan');
+        $alasan_lain = $this->request->getPost('alasan');
+        
+        // Gabungkan alasan
+        if ($alasan_pilihan === 'lainnya' && !empty($alasan_lain)) {
+            $alasan = $alasan_lain;
+        } else {
+            $alasan = $alasan_pilihan;
+        }
+
+        // Validasi alasan wajib diisi
+        if (empty($alasan) || strlen(trim($alasan)) < 5) {
+            return redirect()->back()->with('error', 'Alasan reset password wajib diisi minimal 5 karakter.');
+        }
+
+        $user = $userModel
+            ->where('id', $id)
+            ->where('admin_id', session()->get('id'))
+            ->first();
+
+        if (!$user) {
+            return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
+        }
+
+        // Generate password baru
+        $newPassword = 'pass' . rand(1000, 9999);
+
+        $oldData = [
+            'password' => '*** (tersembunyi)'
+        ];
+
+        $newData = [
+            'password' => '*** (di-reset)'
+        ];
+
+        $userModel->update($id, [
+            'password' => password_hash($newPassword, PASSWORD_DEFAULT)
+        ]);
+
+        // Log aktivitas dengan alasan
+        $logModel = new \App\Models\AdminActivityLogModel();
+        $logModel->logActivity(
+            session()->get('id'),
+            'reset_password',
+            'pemilih',
+            $id,
+            'Mereset password pengguna: ' . $user['username'] . ' | Alasan: ' . $alasan,
+            $oldData,
+            $newData
+        );
+
+        // Tampilkan popup dengan password baru
+        return view('admin/pemilih/reset_success', [
+            'user' => $user,
+            'new_password' => $newPassword
+        ]);
+    }
 }
