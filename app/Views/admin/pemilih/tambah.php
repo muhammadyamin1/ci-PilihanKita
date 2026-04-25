@@ -40,20 +40,49 @@
 
                     <form action="<?= base_url('admin/pemilih/simpan') ?>" method="post">
 
+
                         <div class="mb-3">
                             <label class="form-label">Nama Lengkap</label>
-                            <input type="text" name="nama" class="form-control" required>
+                            <input type="text" name="nama" class="form-control" required minlength="3" maxlength="100" autocomplete="off" placeholder="Nama lengkap">
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" placeholder="Email aktif" maxlength="100" autocomplete="off" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
+                        </div>
+
 
                         <div class="mb-3">
                             <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-control" required>
+                            <input type="text" name="username" class="form-control" required minlength="4" maxlength="50" autocomplete="off" placeholder="Username">
                         </div>
+
 
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <div class="input-group">
+                                <input type="password" name="password" id="passwordInput" class="form-control" required minlength="8" maxlength="50" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$" title="Minimal 8 karakter, huruf dan angka" autocomplete="off" placeholder="Minimal 8 karakter, huruf & angka">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" title="Lihat/Sembunyikan Password">
+                                    <i class="bi bi-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
                         </div>
+
+                        <script>
+                            document.getElementById('togglePassword').addEventListener('click', function() {
+                                const passwordInput = document.getElementById('passwordInput');
+                                const eyeIcon = document.getElementById('eyeIcon');
+                                if (passwordInput.type === 'password') {
+                                    passwordInput.type = 'text';
+                                    eyeIcon.classList.remove('bi-eye');
+                                    eyeIcon.classList.add('bi-eye-slash');
+                                } else {
+                                    passwordInput.type = 'password';
+                                    eyeIcon.classList.remove('bi-eye-slash');
+                                    eyeIcon.classList.add('bi-eye');
+                                }
+                            });
+                        </script>
 
                         <div class="mb-3">
                             <label class="form-label">Kategori Pemilihan</label>

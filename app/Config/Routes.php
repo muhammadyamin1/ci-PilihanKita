@@ -38,6 +38,11 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->post('pemilih/update-nama/(:num)', 'Admin\Pemilih::updateNama/$1');
     $routes->post('pemilih/update-all-nama', 'Admin\Pemilih::updateAllNames');
     $routes->get('pemilih/download-csv/(:any)', 'Admin\Pemilih::downloadCsv/$1');
+    $routes->get('pemilih/import', 'Admin\Pemilih::import');
+    $routes->post('pemilih/import-process', 'Admin\Pemilih::importProcess');
+    $routes->get('pemilih/download-template', 'Admin\Pemilih::downloadTemplate');
+    $routes->get('pemilih/import-result/(:any)', 'Admin\Pemilih::importResult/$1');
+    $routes->get('pemilih/download-import-csv/(:any)', 'Admin\Pemilih::downloadImportCsv/$1');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');

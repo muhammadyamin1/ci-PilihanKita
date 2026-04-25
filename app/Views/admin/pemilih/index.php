@@ -35,7 +35,7 @@
                     Generate Otomatis
                 </a>
                 <a href="<?= base_url('admin/pemilih/import') ?>" class="btn btn-warning btn-sm">
-                    Impor Excel
+                    Impor CSV/Excel
                 </a>
             </div>
         </div>
@@ -196,22 +196,22 @@
 </div>
 
 <script>
-// Initialize tooltips
-document.addEventListener('DOMContentLoaded', function () {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     });
-});
 
-// Auto-hide alerts after 10 seconds
-setTimeout(function() {
-    var alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function(alert) {
-        var bsAlert = new bootstrap.Alert(alert);
-        bsAlert.close();
-    });
-}, 10000);
+    // Auto-hide alerts after 10 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 10000);
 </script>
 
 <?= $this->endSection(); ?>

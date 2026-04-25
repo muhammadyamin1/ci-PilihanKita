@@ -69,11 +69,40 @@ class Pemilih extends BaseController
             return redirect()->back()->with('error', 'Kategori tidak valid.');
         }
 
+        // Validasi manual
+        $nama = trim($this->request->getPost('nama'));
+        $email = trim($this->request->getPost('email'));
+        $username = trim($this->request->getPost('username'));
+        $password = $this->request->getPost('password');
+
+        $errors = [];
+        if (strlen($nama) < 3) {
+            $errors[] = 'Nama minimal 3 karakter.';
+        }
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Format email tidak valid.';
+        }
+        if (strlen($username) < 4) {
+            $errors[] = 'Username minimal 4 karakter.';
+        } elseif ($userModel->where('username', $username)->first()) {
+            $errors[] = 'Username sudah digunakan.';
+        }
+        if (strlen($password) < 8) {
+            $errors[] = 'Password minimal 8 karakter.';
+        } elseif (!preg_match('/[A-Za-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+            $errors[] = 'Password harus mengandung huruf dan angka.';
+        }
+
+        if (!empty($errors)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
+
         $userModel->insert([
             'admin_id'    => session()->get('id'),
-            'nama'        => $this->request->getPost('nama'),
-            'username'    => $this->request->getPost('username'),
-            'password'    => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'nama'        => $nama,
+            'email'       => $email !== '' ? $email : null,
+            'username'    => $username,
+            'password'    => password_hash($password, PASSWORD_DEFAULT),
             'role'        => 'user',
             'kategori_id' => $kategori_id
         ]);
@@ -181,6 +210,280 @@ class Pemilih extends BaseController
                 'kategori' => $kategori
             ]);
         }
+    }
+
+    /**
+     * Tampilkan form Import Excel/CSV
+     */
+    public function import()
+    {
+        $kategoriModel = new \App\Models\KategoriModel();
+
+        $kategori = $kategoriModel
+            ->where('admin_id', session()->get('id'))
+            ->findAll();
+
+        return view('admin/pemilih/import', [
+            'kategori' => $kategori
+        ]);
+    }
+
+    /**
+     * Proses Import CSV/Excel
+     */
+    public function importProcess()
+    {
+        $userModel = new \App\Models\UserModel();
+        $kategoriModel = new \App\Models\KategoriModel();
+
+        $kategori_id = $this->request->getPost('kategori_id');
+
+        if (!$kategori_id) {
+            return redirect()->back()->with('error', 'Kategori harus dipilih.');
+        }
+
+        $cekKategori = $kategoriModel
+            ->where('id', $kategori_id)
+            ->where('admin_id', session()->get('id'))
+            ->first();
+
+        if (!$cekKategori) {
+            return redirect()->back()->with('error', 'Kategori tidak valid.');
+        }
+
+        $file = $this->request->getFile('file_excel');
+
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'File tidak valid atau belum dipilih.');
+        }
+
+        $ext = strtolower($file->getExtension());
+        if (!in_array($ext, ['csv', 'xlsx', 'xls'])) {
+            return redirect()->back()->with('error', 'Hanya file CSV atau Excel (.xlsx, .xls) yang diizinkan.');
+        }
+
+        $batchId = time();
+        $successCount = 0;
+        $failedCount = 0;
+        $errors = [];
+        $plainPasswords = [];   // ← Simpan password plain di sini
+        $importedUsers = [];    // ← Simpan data user yang berhasil diimport
+
+        try {
+            if ($ext === 'csv') {
+                $handle = fopen($file->getTempName(), 'r');
+                if (!$handle) {
+                    throw new \Exception('Gagal membuka file CSV.');
+                }
+
+                // Skip header
+                fgetcsv($handle, 0, ';');
+
+                $rowNum = 1;
+                while (($row = fgetcsv($handle, 0, ';')) !== false) {
+                    $rowNum++;
+
+                    if (empty($row[0])) continue;
+
+                    $nama     = trim($row[0] ?? '');
+                    $username = trim($row[1] ?? '');
+                    $email    = trim($row[2] ?? '');
+                    $password = trim($row[3] ?? '');
+
+                    // Validasi dasar
+                    if (strlen($nama) < 3) {
+                        $errors[] = "Baris $rowNum: Nama minimal 3 karakter.";
+                        $failedCount++;
+                        continue;
+                    }
+                    if (strlen($username) < 4) {
+                        $errors[] = "Baris $rowNum: Username minimal 4 karakter.";
+                        $failedCount++;
+                        continue;
+                    }
+                    if ($userModel->where('username', $username)->first()) {
+                        $errors[] = "Baris $rowNum: Username '$username' sudah digunakan.";
+                        $failedCount++;
+                        continue;
+                    }
+                    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $errors[] = "Baris $rowNum: Format email tidak valid.";
+                        $failedCount++;
+                        continue;
+                    }
+
+                    // Password handling
+                    if (empty($password)) {
+                        $plainPassword = 'pass' . rand(1000, 9999);
+                    } else {
+                        $plainPassword = $password;
+                        if (
+                            strlen($plainPassword) < 8 ||
+                            !preg_match('/[A-Za-z]/', $plainPassword) ||
+                            !preg_match('/[0-9]/', $plainPassword)
+                        ) {
+                            $errors[] = "Baris $rowNum: Password harus minimal 8 karakter dan mengandung huruf + angka.";
+                            $failedCount++;
+                            continue;
+                        }
+                    }
+
+                    $userId = $userModel->insert([
+                        'admin_id'      => session()->get('id'),
+                        'nama'          => $nama,
+                        'email'         => $email !== '' ? $email : null,
+                        'username'      => $username,
+                        'password'      => password_hash($plainPassword, PASSWORD_DEFAULT),
+                        'role'          => 'user',
+                        'kategori_id'   => $kategori_id,
+                        'generated'     => 0,
+                        'sudah_memilih' => 0
+                    ]);
+
+                    // Simpan data untuk ditampilkan nanti
+                    $importedUsers[] = [
+                        'id'       => $userId,
+                        'username' => $username,
+                        'nama'     => $nama,
+                        'email'    => $email
+                    ];
+                    $plainPasswords[$userId] = $plainPassword;
+
+                    $successCount++;
+                }
+                fclose($handle);
+            } else {
+                return redirect()->back()->with('error', 'Import Excel belum didukung. Gunakan CSV.');
+            }
+
+            // Log import
+            $db = \Config\Database::connect();
+            $db->table('user_import_log')->insert([
+                'admin_id'    => session()->get('id'),
+                'jumlah_user' => $successCount,
+                'jenis'       => 'import'
+            ]);
+
+            // Simpan password ke session (sama seperti fitur Generate)
+            session()->set('generated_passwords_' . $batchId, $plainPasswords);
+
+            // Jika ada yang gagal, simpan error ke session
+            if (!empty($errors)) {
+                session()->setFlashdata('import_errors', $errors);
+            }
+
+            $message = "$successCount pemilih berhasil diimport.";
+            if ($failedCount > 0) {
+                $message .= " $failedCount gagal.";
+            }
+
+            // **Redirect ke halaman khusus hasil import**
+            return redirect()->to('/admin/pemilih/import-result/' . $batchId)
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tampilkan hasil import + password
+     */
+    public function importResult($batchId)
+    {
+        $pemilihModel = new \App\Models\PemilihModel();  // Gunakan PemilihModel
+
+        $users = $pemilihModel
+            ->select('users.*, kategori_pemilihan.nama AS nama_kategori')
+            ->join('kategori_pemilihan', 'kategori_pemilihan.id = users.kategori_id', 'left')
+            ->where('users.admin_id', session()->get('id'))
+            ->where('users.role', 'user')
+            ->where('users.created_at >=', date('Y-m-d H:i:s', $batchId - 10)) // toleransi waktu
+            ->orderBy('users.id', 'DESC')
+            ->findAll();
+
+        $plainPasswords = session()->get('generated_passwords_' . $batchId);
+
+        if (empty($users) || empty($plainPasswords)) {
+            return redirect()->to('/admin/pemilih')
+                ->with('error', 'Data hasil import tidak ditemukan atau password sudah tidak tersedia.');
+        }
+
+        return view('admin/pemilih/import_result', [
+            'users'           => $users,
+            'plain_passwords' => $plainPasswords,
+            'batch_id'        => $batchId
+        ]);
+    }
+
+    /**
+     * Download CSV hasil import
+     */
+    public function downloadImportCsv($batchId)
+    {
+        $pemilihModel = new \App\Models\PemilihModel();
+
+        $users = $pemilihModel
+            ->select('users.*, kategori_pemilihan.nama AS nama_kategori')
+            ->join('kategori_pemilihan', 'kategori_pemilihan.id = users.kategori_id', 'left')
+            ->where('users.admin_id', session()->get('id'))
+            ->where('users.role', 'user')
+            ->where('users.created_at >=', date('Y-m-d H:i:s', $batchId - 10))
+            ->orderBy('users.id', 'DESC')
+            ->findAll();
+
+        $plainPasswords = session()->get('generated_passwords_' . $batchId);
+
+        if (empty($users) || empty($plainPasswords)) {
+            return redirect()->to('/admin/pemilih')
+                ->with('error', 'Data hasil import tidak ditemukan.');
+        }
+
+        $filename = 'pemilih_import_' . date('Ymd_His', $batchId) . '.csv';
+
+        $output = "Username;Password;Nama;Email;Kategori\n";
+
+        foreach ($users as $user) {
+            $password = $plainPasswords[$user['id']] ?? 'N/A';
+            $email    = $user['email'] ?? '';
+            $kategori = $user['nama_kategori'] ?? '-';
+            $nama     = str_replace([';', "\n", "\r"], [' ', ' ', ' '], $user['nama']); // sanitasi
+
+            $output .= $user['username'] . ";" .
+                $password . ";" .
+                $nama . ";" .
+                $email . ";" .
+                $kategori . "\n";
+        }
+
+        // Hapus session password setelah berhasil download
+        session()->remove('generated_passwords_' . $batchId);
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+
+        echo $output;
+        exit;
+    }
+
+    /**
+     * Download Template CSV
+     */
+    public function downloadTemplate()
+    {
+        $filename = 'template_import_pemilih.csv';
+
+        $output = "Nama;Username;Email;Password\n";
+        $output .= "Contoh Nama;contoh_username;email@contoh.com;pass1234;Kosongkan baris ini!";
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+
+        echo $output;
+        exit;
     }
 
     public function updateNama($id)
@@ -411,11 +714,11 @@ class Pemilih extends BaseController
     public function reset($id)
     {
         $userModel = new \App\Models\UserModel();
-        
+
         // Ambil alasan dari select atau textarea
         $alasan_pilihan = $this->request->getPost('alasan_pilihan');
         $alasan_lain = $this->request->getPost('alasan');
-        
+
         // Gabungkan alasan
         if ($alasan_pilihan === 'lainnya' && !empty($alasan_lain)) {
             $alasan = $alasan_lain;
