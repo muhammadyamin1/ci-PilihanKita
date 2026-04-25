@@ -14,7 +14,8 @@ class SuaraModel extends Model
 
     protected $allowedFields = [
         'user_id',
-        'calon_id'
+        'calon_id',
+        'waktu_pilih'
     ];
 
     protected $useTimestamps = false;

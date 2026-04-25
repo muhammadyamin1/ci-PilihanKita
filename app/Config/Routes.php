@@ -46,6 +46,7 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
+    $routes->post('vote', 'Auth::vote');
 });
 
 $routes->get('auth/logout', 'Auth::logout');
