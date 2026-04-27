@@ -63,6 +63,15 @@ class Auth extends BaseController
             return redirect()->to('/login')->with('error', 'Kategori pemilihan belum ditentukan untuk akun Anda.');
         }
 
+        // Cek apakah password user adalah password default sistem
+        // Jika generated = 1, wajib ubah password dulu
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($userId);
+        
+        if ($user && $user['generated'] == 1) {
+            return redirect()->to('/user/ubah-password')->with('warning', 'Anda harus mengubah password default terlebih dahulu sebelum memilih.');
+        }
+
         $calonModel = new \App\Models\CalonModel();
 
         $calons = $calonModel
@@ -170,6 +179,70 @@ class Auth extends BaseController
         $session->remove(['id', 'username', 'nama', 'role', 'admin_id', 'kategori_id', 'logged_in']);
 
         return redirect()->to('/login')->with('success', 'Anda telah logout.');
+    }
+
+    /**
+     * Tampilkan form ubah password (untuk user dengan password sistem)
+     */
+    public function ubahPassword()
+    {
+        if (!session()->get('logged_in') || session('role') !== 'user') {
+            return redirect()->to('/login');
+        }
+
+        $userId = session('id');
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($userId);
+
+        // Jika bukan password sistem, redirect ke pemilihan
+        if (!$user || $user['generated'] != 1) {
+            return redirect()->to('user/pemilihan');
+        }
+
+        return view('user/ubah_password');
+    }
+
+    /**
+     * Proses ubah password
+     */
+    public function processUbahPassword()
+    {
+        if (!session()->get('logged_in') || session('role') !== 'user') {
+            return redirect()->to('/login');
+        }
+
+        $userId = session('id');
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($userId);
+
+        // Jika bukan password sistem, redirect ke pemilihan
+        if (!$user || $user['generated'] != 1) {
+            return redirect()->to('user/pemilihan');
+        }
+
+        $passwordBaru = $this->request->getPost('password_baru');
+        $konfirmasiPassword = $this->request->getPost('konfirmasi_password');
+
+        // Validasi
+        if (strlen($passwordBaru) < 8) {
+            return redirect()->back()->with('error', 'Password minimal 8 karakter.');
+        }
+
+        if (!preg_match('/[A-Za-z]/', $passwordBaru) || !preg_match('/[0-9]/', $passwordBaru)) {
+            return redirect()->back()->with('error', 'Password harus mengandung huruf dan angka.');
+        }
+
+        if ($passwordBaru !== $konfirmasiPassword) {
+            return redirect()->back()->with('error', 'Konfirmasi password tidak cocok.');
+        }
+
+        // Update password dan set generated = 0
+        $userModel->update($userId, [
+            'password'   => password_hash($passwordBaru, PASSWORD_DEFAULT),
+            'generated'  => 0
+        ]);
+
+        return redirect()->to('user/pemilihan')->with('success', 'Password berhasil diubah. Sekarang Anda bisa memilih.');
     }
 
     public function forgotPassword()

@@ -19,14 +19,49 @@
                     <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
                 <?php endif; ?>
 
+                <?php if (session()->getFlashdata('error')): ?>
+                    <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+                <?php endif; ?>
+
+                <?php $import_errors = session()->getFlashdata('import_errors'); ?>
+                <?php if (!empty($import_errors)): ?>
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Beberapa data gagal diimport:</h5>
+                        <ul class="mb-0">
+                            <?php foreach ($import_errors as $err): ?>
+                                <li><?= esc($err) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
                 <div class="alert alert-info">
-                    <strong>Password telah dibuat otomatis untuk pemilih yang kosong password-nya.</strong><br>
-                    Silakan simpan atau download CSV sebelum meninggalkan halaman ini.
+                    <?php
+                    $hasGeneratedPassword = false;
+
+                    foreach ($users as $user) {
+                        if (isset($user['generated']) && $user['generated'] == 1) {
+                            $hasGeneratedPassword = true;
+                            break;
+                        }
+                    }
+                    ?>
+
+                    <?php if ($hasGeneratedPassword): ?>
+                        <strong>Password telah dibuat otomatis</strong> untuk pemilih yang kosong password-nya di file CSV.<br>
+                    <?php else: ?>
+                        <strong>Semua password telah diisi manual</strong> dari file CSV yang diupload.<br>
+                    <?php endif; ?>
+
+                    Silakan simpan atau download CSV untuk menyimpan username dan password sebelum meninggalkan halaman ini.
                 </div>
 
                 <div class="mb-3">
                     <a href="<?= base_url('admin/pemilih/download-import-csv/' . $batch_id) ?>" class="btn btn-success">
                         <i class="bi bi-download"></i> Download CSV Semua Data + Password
+                    </a>
+                    <a href="<?= base_url('admin/pemilih/download-generated-csv/' . $batch_id) ?>" class="btn btn-warning">
+                        <i class="bi bi-key"></i> Download CSV Password Sistem Saja
                     </a>
                     <a href="<?= base_url('admin/pemilih') ?>" class="btn btn-secondary">Kembali ke Daftar Pemilih</a>
                 </div>
@@ -43,7 +78,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $no = 1; foreach ($users as $user): ?>
+                            <?php $no = 1;
+                            foreach ($users as $user): ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= esc($user['username']) ?></td>

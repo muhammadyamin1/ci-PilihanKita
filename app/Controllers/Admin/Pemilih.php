@@ -16,6 +16,22 @@ class Pemilih extends BaseController
 
     public function index()
     {
+        // Cleanup session password yang expired (> 20 menit)
+        $session = session();
+        $sessionData = $session->get();
+        $twentyMinutesAgo = time() - 1200; // 20 menit
+
+        if (is_array($sessionData)) {
+            foreach ($sessionData as $key => $value) {
+                if (strpos($key, 'generated_passwords_') === 0) {
+                    $batchId = str_replace('generated_passwords_', '', $key);
+                    if (is_numeric($batchId) && $batchId < $twentyMinutesAgo) {
+                        $session->remove($key);
+                    }
+                }
+            }
+        }
+
         $perPage = $this->request->getGet('perPage') ?? 20;
 
         $allowed = [20, 50, 100];
@@ -279,35 +295,45 @@ class Pemilih extends BaseController
                 // Skip header
                 fgetcsv($handle, 0, ';');
 
-                $rowNum = 1;
+                $rowNum = 0;
+                $dataRow = 0;
+
                 while (($row = fgetcsv($handle, 0, ';')) !== false) {
                     $rowNum++;
+                    $dataRow = $rowNum;   // nomor urut data (mulai dari 1)
 
-                    if (empty($row[0])) continue;
+                    // Skip baris kosong
+                    if (empty($row) || empty(trim(implode('', $row)))) continue;
 
-                    $nama     = trim($row[0] ?? '');
-                    $username = trim($row[1] ?? '');
-                    $email    = trim($row[2] ?? '');
-                    $password = trim($row[3] ?? '');
+                    // Karena ada kolom No di depan, indeks bergeser +1
+                    $nama     = trim($row[1] ?? '');   // ← Nama sekarang di index 1
+                    $username = trim($row[2] ?? '');   // ← Username di index 2
+                    $email    = trim($row[3] ?? '');   // ← Email di index 3
+                    $password = trim($row[4] ?? '');   // ← Password di index 4
 
                     // Validasi dasar
+                    if (empty($username)) {
+                        $errors[] = "Baris $dataRow: Username tidak boleh kosong.";
+                        $failedCount++;
+                        continue;
+                    }
                     if (strlen($nama) < 3) {
-                        $errors[] = "Baris $rowNum: Nama minimal 3 karakter.";
+                        $errors[] = "Baris $dataRow: Nama minimal 3 karakter.";
                         $failedCount++;
                         continue;
                     }
                     if (strlen($username) < 4) {
-                        $errors[] = "Baris $rowNum: Username minimal 4 karakter.";
+                        $errors[] = "Baris $dataRow: Username minimal 4 karakter.";
                         $failedCount++;
                         continue;
                     }
                     if ($userModel->where('username', $username)->first()) {
-                        $errors[] = "Baris $rowNum: Username '$username' sudah digunakan.";
+                        $errors[] = "Baris $dataRow: Username '$username' sudah digunakan.";
                         $failedCount++;
                         continue;
                     }
                     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        $errors[] = "Baris $rowNum: Format email tidak valid.";
+                        $errors[] = "Baris $dataRow: Format email tidak valid.";
                         $failedCount++;
                         continue;
                     }
@@ -315,14 +341,16 @@ class Pemilih extends BaseController
                     // Password handling
                     if (empty($password)) {
                         $plainPassword = 'pass' . rand(1000, 9999);
+                        $isGenerated = 1; // Password dibuat sistem
                     } else {
                         $plainPassword = $password;
+                        $isGenerated = 0; // Password dari CSV (manual)
                         if (
                             strlen($plainPassword) < 8 ||
                             !preg_match('/[A-Za-z]/', $plainPassword) ||
                             !preg_match('/[0-9]/', $plainPassword)
                         ) {
-                            $errors[] = "Baris $rowNum: Password harus minimal 8 karakter dan mengandung huruf + angka.";
+                            $errors[] = "Baris $dataRow: Password harus minimal 8 karakter dan mengandung huruf + angka.";
                             $failedCount++;
                             continue;
                         }
@@ -336,7 +364,7 @@ class Pemilih extends BaseController
                         'password'      => password_hash($plainPassword, PASSWORD_DEFAULT),
                         'role'          => 'user',
                         'kategori_id'   => $kategori_id,
-                        'generated'     => 0,
+                        'generated'     => $isGenerated,
                         'sudah_memilih' => 0
                     ]);
 
@@ -367,6 +395,17 @@ class Pemilih extends BaseController
             // Simpan password ke session (sama seperti fitur Generate)
             session()->set('generated_passwords_' . $batchId, $plainPasswords);
 
+            // Simpan juga info user yang generated (untuk filter download)
+            $generatedUserIds = [];
+            foreach ($importedUsers as $idx => $user) {
+                // Cek apakah password di posisi ini generated
+                $userPassword = $plainPasswords[$user['id']] ?? '';
+                if (preg_match('/^pass[0-9]{4}$/', $userPassword)) {
+                    $generatedUserIds[] = $user['id'];
+                }
+            }
+            session()->set('generated_user_ids_' . $batchId, $generatedUserIds);
+
             // Jika ada yang gagal, simpan error ke session
             if (!empty($errors)) {
                 session()->setFlashdata('import_errors', $errors);
@@ -375,6 +414,16 @@ class Pemilih extends BaseController
             $message = "$successCount pemilih berhasil diimport.";
             if ($failedCount > 0) {
                 $message .= " $failedCount gagal.";
+            }
+
+            // Jika tidak ada yang berhasil diimport, redirect kembali dengan error
+            if ($successCount === 0) {
+                $allErrors = array_merge(
+                    ['Tidak ada data yang berhasil diimport. Mohon periksa format CSV Anda.'],
+                    $errors
+                );
+                return redirect()->to('/admin/pemilih/import')
+                    ->with('error', $allErrors);
             }
 
             // **Redirect ke halaman khusus hasil import**
@@ -393,7 +442,7 @@ class Pemilih extends BaseController
         $pemilihModel = new \App\Models\PemilihModel();  // Gunakan PemilihModel
 
         $users = $pemilihModel
-            ->select('users.*, kategori_pemilihan.nama AS nama_kategori')
+            ->select('users.*, kategori_pemilihan.nama AS nama_kategori, users.generated')
             ->join('kategori_pemilihan', 'kategori_pemilihan.id = users.kategori_id', 'left')
             ->where('users.admin_id', session()->get('id'))
             ->where('users.role', 'user')
@@ -440,15 +489,17 @@ class Pemilih extends BaseController
 
         $filename = 'pemilih_import_' . date('Ymd_His', $batchId) . '.csv';
 
-        $output = "Username;Password;Nama;Email;Kategori\n";
+        $output = "No;Username;Password;Nama;Email;Kategori\n";
 
+        $no = 1;
         foreach ($users as $user) {
             $password = $plainPasswords[$user['id']] ?? 'N/A';
             $email    = $user['email'] ?? '';
             $kategori = $user['nama_kategori'] ?? '-';
-            $nama     = str_replace([';', "\n", "\r"], [' ', ' ', ' '], $user['nama']); // sanitasi
+            $nama     = str_replace([';', "\n", "\r"], [' ', ' ', ' '], $user['nama']);
 
-            $output .= $user['username'] . ";" .
+            $output .= $no++ . ";" .
+                $user['username'] . ";" .
                 $password . ";" .
                 $nama . ";" .
                 $email . ";" .
@@ -456,7 +507,63 @@ class Pemilih extends BaseController
         }
 
         // Hapus session password setelah berhasil download
-        session()->remove('generated_passwords_' . $batchId);
+        // session()->remove('generated_passwords_' . $batchId);
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+
+        echo "\xEF\xBB\xBF"; // BOM untuk Excel supaya UTF-8 benar
+        echo $output;
+        exit;
+    }
+
+    /**
+     * Download CSV hanya untuk password yang dibuat sistem (generated)
+     */
+    public function downloadGeneratedCsv($batchId)
+    {
+        $pemilihModel = new \App\Models\PemilihModel();
+
+        $users = $pemilihModel
+            ->select('users.*, kategori_pemilihan.nama AS nama_kategori')
+            ->join('kategori_pemilihan', 'kategori_pemilihan.id = users.kategori_id', 'left')
+            ->where('users.admin_id', session()->get('id'))
+            ->where('users.role', 'user')
+            ->where('users.created_at >=', date('Y-m-d H:i:s', $batchId - 10))
+            ->where('users.generated', 1)
+            ->orderBy('users.id', 'DESC')
+            ->findAll();
+
+        $plainPasswords = session()->get('generated_passwords_' . $batchId);
+
+        if (empty($users) || empty($plainPasswords)) {
+            return redirect()->to('/admin/pemilih/import-result/' . $batchId)
+                ->with('error', 'Tidak ada password sistem yang tersedia untuk didownload.');
+        }
+
+        $filename = 'pemilih_password_sistem_' . date('Ymd_His', $batchId) . '.csv';
+
+        $output = "No;Username;Password;Nama;Email;Kategori\n";
+
+        $no = 1;
+        foreach ($users as $user) {
+            $password = $plainPasswords[$user['id']] ?? 'N/A';
+            $email    = $user['email'] ?? '';
+            $kategori = $user['nama_kategori'] ?? '-';
+            $nama     = str_replace([';', "\n", "\r"], [' ', ' ', ' '], $user['nama']);
+
+            $output .= $no++ . ";" .
+                $user['username'] . ";" .
+                $password . ";" .
+                $nama . ";" .
+                $email . ";" .
+                $kategori . "\n";
+        }
+
+        // Hapus session password setelah berhasil download
+        // session()->remove('generated_passwords_' . $batchId);
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -474,8 +581,9 @@ class Pemilih extends BaseController
     {
         $filename = 'template_import_pemilih.csv';
 
-        $output = "Nama;Username;Email;Password\n";
-        $output .= "Contoh Nama;contoh_username;email@contoh.com;pass1234;Kosongkan baris ini!";
+        $output = "No;Nama;Username;Email;Password\n";
+        $output .= "1;Contoh Nama;contoh_username;email@contoh.com;pass1234\n";
+        $output .= "2;Contoh Nama 2;contoh_username2;email2@contoh.com;pass5678\n";
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -579,12 +687,13 @@ class Pemilih extends BaseController
 
         // Generate CSV dengan semicolon delimiter untuk Excel (karena koma digunakan untuk decimal di Indonesia)
         $filename = 'pemilih_generated_' . $batchId . '.csv';
-        $output = "Username;Password;Nama;Kategori\n"; // Header dengan semicolon
+        $output = "No;Username;Password;Nama;Kategori\n"; // Header dengan semicolon
 
+        $no = 1;
         foreach ($users as $user) {
             $password = $plainPasswords[$user['id']] ?? 'N/A';
             $kategori = $user['nama_kategori'] ?? '-';
-            $output .= $user['username'] . ";" . $password . ";" . $user['nama'] . ";" . $kategori . "\n";
+            $output .= $no++ . ";" . $user['username'] . ";" . $password . ";" . $user['nama'] . ";" . $kategori . "\n";
         }
 
         // Hapus session setelah download

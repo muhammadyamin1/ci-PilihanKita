@@ -43,10 +43,13 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('pemilih/download-template', 'Admin\Pemilih::downloadTemplate');
     $routes->get('pemilih/import-result/(:any)', 'Admin\Pemilih::importResult/$1');
     $routes->get('pemilih/download-import-csv/(:any)', 'Admin\Pemilih::downloadImportCsv/$1');
+    $routes->get('pemilih/download-generated-csv/(:any)', 'Admin\Pemilih::downloadGeneratedCsv/$1');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
     $routes->post('vote', 'Auth::vote');
+    $routes->get('ubah-password', 'Auth::ubahPassword');
+    $routes->post('ubah-password', 'Auth::processUbahPassword');
 });
 
 $routes->get('auth/logout', 'Auth::logout');

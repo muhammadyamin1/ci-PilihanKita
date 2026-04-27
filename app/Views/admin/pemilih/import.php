@@ -16,7 +16,19 @@
         <div class="card shadow-sm">
             <div class="card-body">
                 <?php if (session()->getFlashdata('error')): ?>
-                    <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+                    <?php $error = session()->getFlashdata('error'); ?>
+                    <?php if (is_array($error)): ?>
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">Import Gagal:</h5>
+                            <ul class="mb-0">
+                                <?php foreach ($error as $err): ?>
+                                    <li><?= esc($err) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-danger"><?= esc($error) ?></div>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <div class="alert alert-info">
