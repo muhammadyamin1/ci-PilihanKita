@@ -19,6 +19,9 @@ class UserModel extends Model
         'kategori_id',
         'generated',
         'sudah_memilih',
+        'foto',
+        'verification_code',
+        'verification_expires',
         'created_at'
     ];
 

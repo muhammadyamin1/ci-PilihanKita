@@ -21,7 +21,11 @@
 
         <?php if (session()->getFlashdata('error')): ?>
             <script>
-                Swal.fire('Oops', '<?= session()->getFlashdata('error') ?>', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: '<?= session()->getFlashdata('error') ?>'
+                });
             </script>
         <?php endif; ?>
 
@@ -30,7 +34,12 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil',
-                    text: '<?= session()->getFlashdata('success') ?>'
+                    text: '<?= session()->getFlashdata('success') ?>',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '<?= base_url('forgot-password/verify') ?>';
+                    }
                 });
             </script>
         <?php endif; ?>

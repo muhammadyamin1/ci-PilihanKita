@@ -84,30 +84,35 @@
             <!--begin::User Menu Dropdown-->
             <li class="nav-item dropdown user-menu">
               <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                <?php 
+                $userModel = new \App\Models\UserModel();
+                $currentUser = $userModel->find(session('id'));
+                $userFoto = !empty($currentUser['foto']) ? base_url('foto/user/' . $currentUser['foto']) : base_url('assets/adminlte/img/user2-160x160.jpg');
+                ?>
                 <img
-                  src="<?= base_url('assets/adminlte/img/user2-160x160.jpg') ?>"
+                  src="<?= $userFoto ?>"
                   class="user-image rounded-circle shadow"
                   alt="User Image"
                 />
-                <span class="d-none d-md-inline">Alexander Pierce</span>
+                <span class="d-none d-md-inline"><?= esc(session('nama')) ?></span>
               </a>
               <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                 <!--begin::User Image-->
                 <li class="user-header text-bg-primary">
                   <img
-                    src="<?= base_url('assets/adminlte/img/user2-160x160.jpg') ?>"
+                    src="<?= $userFoto ?>"
                     class="rounded-circle shadow"
                     alt="User Image"
                   />
                   <p>
-                    Alexander Pierce - Web Developer
-                    <small>Member since Nov. 2023</small>
+                    <?= esc(session('nama')) ?>
+                    <small>Administrator</small>
                   </p>
                 </li>
                 <!--end::User Image-->
                 <!--begin::Menu Footer-->
                 <li class="user-footer">
-                  <a href="#" class="btn btn-default btn-flat">Profile</a>
+                  <a href="<?= base_url('admin/profile') ?>" class="btn btn-default btn-flat">Profile</a>
                   <a href="<?= base_url('auth/logout') ?>" class="btn btn-default btn-flat float-end">Sign out</a>
                 </li>
                 <!--end::Menu Footer-->

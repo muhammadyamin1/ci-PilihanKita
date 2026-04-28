@@ -11,6 +11,8 @@ $routes->get('login', 'Auth::index');     // Form login
 $routes->post('login', 'Auth::login');  // Proses login
 $routes->get('forgot-password', 'Auth::forgotPassword');
 $routes->post('forgot-password', 'Auth::processForgotPassword');
+$routes->get('forgot-password/verify', 'Auth::forgotPasswordVerify');
+$routes->post('forgot-password/verify', 'Auth::processForgotPasswordVerify');
 
 $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
@@ -44,6 +46,11 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('pemilih/import-result/(:any)', 'Admin\Pemilih::importResult/$1');
     $routes->get('pemilih/download-import-csv/(:any)', 'Admin\Pemilih::downloadImportCsv/$1');
     $routes->get('pemilih/download-generated-csv/(:any)', 'Admin\Pemilih::downloadGeneratedCsv/$1');
+    
+    // Profile routes
+    $routes->get('profile', 'Admin\Profile::index');
+    $routes->post('profile/update-password', 'Admin\Profile::updatePassword');
+    $routes->post('profile/update-foto', 'Admin\Profile::updateFoto');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
@@ -55,3 +62,4 @@ $routes->group('user', ['filter' => 'F_user'], function ($routes) {
 $routes->get('auth/logout', 'Auth::logout');
 
 $routes->get('foto/calon/(:any)', 'UploadController::showCalon/$1', ['filter' => 'F_general']);
+$routes->get('foto/user/(:any)', 'UploadController::showUser/$1', ['filter' => 'F_general']);

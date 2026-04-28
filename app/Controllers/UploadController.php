@@ -20,4 +20,19 @@ class UploadController extends Controller
             ->setHeader('Content-Type', mime_content_type($path))
             ->setBody(file_get_contents($path));
     }
+    
+    public function showUser($filename)
+    {
+        // Ambil file dari writable/uploads/user/
+        $path = WRITEPATH . 'uploads/user/' . $filename;
+
+        // Cek apakah file ada
+        if (!file_exists($path)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        return $this->response
+            ->setHeader('Content-Type', mime_content_type($path))
+            ->setBody(file_get_contents($path));
+    }
 }
