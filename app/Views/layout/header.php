@@ -82,33 +82,61 @@
             </li>
             <!--end::Fullscreen Toggle-->
             <!--begin::User Menu Dropdown-->
-            <li class="nav-item dropdown user-menu">
+                        <li class="nav-item dropdown user-menu">
               <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                 <?php 
                 $userModel = new \App\Models\UserModel();
                 $currentUser = $userModel->find(session('id'));
-                $userFoto = !empty($currentUser['foto']) ? base_url('foto/user/' . $currentUser['foto']) : base_url('assets/adminlte/img/user2-160x160.jpg');
+                
+                $hasFoto = !empty($currentUser['foto']) && file_exists(WRITEPATH . $currentUser['foto']);
+                $userFoto = $hasFoto ? base_url('foto/user/' . basename($currentUser['foto'])) : null;
+                
+                // Logika Inisial Nama
+                $initials = '';
+                if (!$hasFoto) {
+                    $nama = session('nama') ?? 'User';
+                    $words = explode(' ', trim($nama));
+                    $initials = strtoupper(substr($words[0], 0, 1));
+                    if (count($words) > 1) {
+                        $initials .= strtoupper(substr($words[1], 0, 1));
+                    }
+                }
                 ?>
-                <img
-                  src="<?= $userFoto ?>"
-                  class="user-image rounded-circle shadow"
-                  alt="User Image"
-                />
+
+                <?php if ($hasFoto): ?>
+                  <img
+                    src="<?= $userFoto ?>"
+                    class="user-image rounded-circle shadow"
+                    alt="User Image"
+                  />
+                <?php else: ?>
+                  <div class="user-image rounded-circle shadow bg-primary d-inline-flex align-items-center justify-content-center text-white" style="width: 32px; height: 32px; font-size: 14px; font-weight: bold; vertical-align: middle; margin-right: 5px;">
+                    <?= $initials ?>
+                  </div>
+                <?php endif; ?>
+                
                 <span class="d-none d-md-inline"><?= esc(session('nama')) ?></span>
               </a>
               <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                 <!--begin::User Image-->
                 <li class="user-header text-bg-primary">
-                  <img
-                    src="<?= $userFoto ?>"
-                    class="rounded-circle shadow"
-                    alt="User Image"
-                  />
+                  <?php if ($hasFoto): ?>
+                    <img
+                      src="<?= $userFoto ?>"
+                      class="rounded-circle shadow"
+                      alt="User Image"
+                    />
+                  <?php else: ?>
+                    <div class="rounded-circle shadow bg-white text-primary d-inline-flex align-items-center justify-content-center mx-auto mb-2" style="width: 90px; height: 90px; font-size: 36px; font-weight: bold;">
+                      <?= $initials ?>
+                    </div>
+                  <?php endif; ?>
                   <p>
                     <?= esc(session('nama')) ?>
                     <small>Administrator</small>
                   </p>
                 </li>
+
                 <!--end::User Image-->
                 <!--begin::Menu Footer-->
                 <li class="user-footer">

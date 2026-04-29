@@ -19,10 +19,31 @@
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
                         <?php 
-                        $userFoto = !empty($user['foto']) ? base_url('foto/user/' . $user['foto']) : base_url('assets/adminlte/img/user2-160x160.jpg');
+                        $hasFoto = !empty($user['foto']) && file_exists(WRITEPATH . $user['foto']);
+                        $userFoto = $hasFoto ? base_url('foto/user/' . basename($user['foto'])) : null;
+                        
+                        // Logika Inisial
+                        $initials = '';
+                        if (!$hasFoto) {
+                            $nama = $user['nama'] ?? 'User';
+                            $words = explode(' ', trim($nama));
+                            $initials = strtoupper(substr($words[0], 0, 1));
+                            if (count($words) > 1) {
+                                $initials .= strtoupper(substr($words[1], 0, 1));
+                            }
+                        }
                         ?>
-                        <img src="<?= $userFoto ?>" alt="Foto Profile" class="rounded-circle shadow mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+
+                        <?php if ($hasFoto): ?>
+                            <img src="<?= $userFoto ?>" alt="Foto Profile" class="rounded-circle shadow mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        <?php else: ?>
+                            <div class="rounded-circle shadow bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 150px; height: 150px; font-size: 64px; font-weight: bold;">
+                                <?= $initials ?>
+                            </div>
+                        <?php endif; ?>
+
                         <h4><?= esc($user['nama']) ?></h4>
+
                         <p class="text-muted">@<?= esc($user['username']) ?></p>
                         <p class="badge bg-primary">Administrator</p>
                         

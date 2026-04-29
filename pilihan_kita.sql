@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 29 Apr 2026 pada 05.29
+-- Waktu pembuatan: 29 Apr 2026 pada 10.01
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -129,7 +129,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `kategori_id`, `generated`, `sudah_memilih`, `created_at`, `foto`, `verification_code`, `verification_expires`) VALUES
-(1, NULL, 'yamin123', '$2y$10$/R22qg4nWR6oE9jOCkPWg.cBNwtr2ZOsL4Z0MUw50xxl/YhujxZDO', 'Administrator', 'muhammadyamin1081@gmail.com', 'admin', NULL, 0, 0, '2025-10-16 10:28:48', 'user_1_1777347696.jpg', '312766', '2026-04-28 04:57:17');
+(1, NULL, 'yamin123', '$2y$10$VGGoOG9gOPJWbG9mDzCTbex0wn1Brvup2c53/Yo2tTsJFf.zksfYy', 'Muhammad Yamin', 'muhammadyamin1081@gmail.com', 'admin', NULL, 0, 0, '2025-10-16 10:28:48', '', NULL, NULL);
 
 -- --------------------------------------------------------
 
