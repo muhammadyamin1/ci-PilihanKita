@@ -111,12 +111,16 @@ class Calon extends BaseController
         return $this->response->setJSON(['success' => true, 'data' => $calon]);
     }
 
-    public function update()
+        public function update()
     {
         $id = $this->request->getPost('id');
         if (!$id) {
             return $this->response->setJSON(['success' => false, 'error' => 'ID calon tidak ditemukan.']);
         }
+
+        // Ambil data lama untuk pengecekan file
+        $oldData = $this->calonModel->find($id);
+
         $namaCalon = $this->request->getPost('nama_calon');
         $wakilCalon = $this->request->getPost('wakil_calon');
         $visi = $this->request->getPost('visi');
@@ -134,12 +138,27 @@ class Calon extends BaseController
         // Jika upload foto baru
         $foto = $this->request->getFile('fotoGabungan');
         if ($foto && $foto->isValid() && !$foto->hasMoved()) {
-            $filename = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $namaCalon . '_' . $wakilCalon)) . '.jpg';
+            
+            // Hapus file lama jika ada sebelum menimpa/mengganti
+            if ($oldData && !empty($oldData['foto'])) {
+                $oldFilePath = WRITEPATH . $oldData['foto'];
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
+            }
+
+            // Generate nama file baru
+            $combinedName = $namaCalon . '_' . $wakilCalon;
+            $cleanName = preg_replace('/[^a-zA-Z0-9]/', '_', $combinedName);
+            $cleanName = preg_replace('/_+/', '_', $cleanName);
+            $filename = strtolower(trim($cleanName, '_')) . '.jpg';
+            
             $path = 'uploads/calon/' . $filename;
 
             if (!is_dir(WRITEPATH . 'uploads/calon')) {
                 mkdir(WRITEPATH . 'uploads/calon', 0777, true);
             }
+            
             $foto->move(WRITEPATH . 'uploads/calon', $filename, true);
             $data['foto'] = $path;
         }

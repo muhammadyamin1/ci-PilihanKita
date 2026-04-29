@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 24 Apr 2026 pada 10.09
+-- Waktu pembuatan: 29 Apr 2026 pada 05.29
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -84,9 +84,9 @@ CREATE TABLE `kategori_pemilihan` (
 
 INSERT INTO `kategori_pemilihan` (`id`, `nama`, `aktif`, `admin_id`) VALUES
 (1, 'Ketua Kelas', 0, 1),
-(2, 'OSIS', 1, 1),
+(2, 'OSIS', 0, 1),
 (3, 'Kating', 0, 1),
-(4, 'BEM', 0, 1);
+(4, 'BEM', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -118,16 +118,18 @@ CREATE TABLE `users` (
   `kategori_id` int(11) DEFAULT NULL,
   `generated` tinyint(1) DEFAULT 0,
   `sudah_memilih` tinyint(1) DEFAULT 0,
-  `created_at` datetime DEFAULT current_timestamp()
+  `created_at` datetime DEFAULT current_timestamp(),
+  `foto` varchar(255) DEFAULT NULL,
+  `verification_code` varchar(10) DEFAULT NULL,
+  `verification_expires` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `users`
 --
 
-INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `kategori_id`, `generated`, `sudah_memilih`, `created_at`) VALUES
-(1, NULL, 'yamin123', '$2y$10$a6f5B5ew9PIljHVpPgv2meNXKXETmD5fcObzNgXuB1wexJHXE5j7S', 'Administrator', NULL, 'admin', NULL, 0, 0, '2025-10-16 10:28:48'),
-(2, NULL, 'user', '$2y$10$VGlqMFgkDUu0j5Mq5TggZOAnT55sJ4ikqJOH.YmoXXWwG8PYJQTy6', 'User', NULL, 'user', NULL, 0, 0, '2025-10-16 10:29:49');
+INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `kategori_id`, `generated`, `sudah_memilih`, `created_at`, `foto`, `verification_code`, `verification_expires`) VALUES
+(1, NULL, 'yamin123', '$2y$10$/R22qg4nWR6oE9jOCkPWg.cBNwtr2ZOsL4Z0MUw50xxl/YhujxZDO', 'Administrator', 'muhammadyamin1081@gmail.com', 'admin', NULL, 0, 0, '2025-10-16 10:28:48', 'user_1_1777347696.jpg', '312766', '2026-04-28 04:57:17');
 
 -- --------------------------------------------------------
 
@@ -226,7 +228,7 @@ ALTER TABLE `suara`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_import_log`
