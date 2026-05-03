@@ -88,7 +88,7 @@
                 $userModel = new \App\Models\UserModel();
                 $currentUser = $userModel->find(session('id'));
                 
-                $hasFoto = !empty($currentUser['foto']) && file_exists(WRITEPATH . $currentUser['foto']);
+                $hasFoto = !empty($currentUser['foto']) && file_exists(WRITEPATH . 'uploads/user/' . $currentUser['foto']);
                 $userFoto = $hasFoto ? base_url('foto/user/' . basename($currentUser['foto'])) : null;
                 
                 // Logika Inisial Nama
