@@ -51,6 +51,9 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('profile', 'Admin\Profile::index');
     $routes->post('profile/update-password', 'Admin\Profile::updatePassword');
     $routes->post('profile/update-foto', 'Admin\Profile::updateFoto');
+
+    // Cleanup route
+    $routes->get('cleanup', 'Admin\Cleanup::index');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
