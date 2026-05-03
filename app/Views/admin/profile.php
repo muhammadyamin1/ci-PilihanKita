@@ -14,6 +14,16 @@
 <div class="app-content">
     <div class="container-fluid">
         <div class="row">
+            <?php if (!$gd_active): ?>
+                <div class="col-md-12">
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <b>GD Library belum aktif.</b> Resize dan kompresi foto tidak akan berjalan.
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            <?php endif; ?>
             <div class="col-md-4">
                 <!-- Profile Photo Card -->
                 <div class="card shadow-sm">
@@ -54,7 +64,7 @@
                             <?= csrf_field() ?>
                             <div class="mb-3">
                                 <input type="file" name="foto" class="form-control" accept="image/*" required>
-                                <small class="text-muted">Format: JPG, PNG, GIF, WebP (Max 2MB)</small>
+                                <small class="text-muted">Format: JPG, PNG, GIF, WebP (Max 500 KB)</small>
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-camera-fill"></i> Ganti Foto
@@ -66,7 +76,7 @@
 
             <div class="col-md-8">
                 <!-- Change Password Card -->
-                <div class="card shadow-sm">
+                <div class="card shadow-sm mb-3"> <!-- Tambahkan mb-3 untuk jarak antar card -->
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0"><i class="bi bi-key-fill me-2"></i> Ganti Password</h5>
                     </div>
@@ -100,6 +110,47 @@
 
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-lg"></i> Simpan Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Update Email Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-envelope-fill me-2"></i> Ubah Email</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (session()->getFlashdata('error_email')): ?>
+                            <div class="alert alert-danger">
+                                <?= session()->getFlashdata('error_email') ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (session()->getFlashdata('success_email')): ?>
+                            <div class="alert alert-success">
+                                <?= session()->getFlashdata('success_email') ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <form action="<?= base_url('admin/profile/update-email') ?>" method="post">
+                            <?= csrf_field() ?>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email Baru</label>
+                                <input type="email" name="email" class="form-control" value="<?= esc(old('email', $user['email'])) ?>" required>
+                                <?php if (session()->getFlashdata('errors_email')): ?>
+                                    <div class="alert alert-danger">
+                                        <ul class="mb-0">
+                                            <?php foreach (session()->getFlashdata('errors_email') as $err): ?>
+                                                <li><?= esc($err) ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-lg"></i> Simpan Email
                             </button>
                         </form>
                     </div>

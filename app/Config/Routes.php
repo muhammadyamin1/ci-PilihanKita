@@ -52,6 +52,9 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->post('profile/update-password', 'Admin\Profile::updatePassword');
     $routes->post('profile/update-foto', 'Admin\Profile::updateFoto');
 
+    //Update email
+    $routes->post('profile/update-email', 'Admin\Profile::updateEmail');
+
     // Cleanup route
     $routes->get('cleanup', 'Admin\Cleanup::index');
 });
