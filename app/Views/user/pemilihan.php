@@ -10,7 +10,7 @@
 
         <?php if ($sudahMemilih): ?>
             <div class="alert alert-success text-center py-4 fs-4">
-                <i class="bi bi-check-circle-fill me-3"></i> 
+                <i class="bi bi-check-circle-fill me-3"></i>
                 Terima kasih! Anda sudah memberikan suara.
             </div>
         <?php endif; ?>
@@ -19,25 +19,25 @@
             <?php foreach ($calons as $calon): ?>
                 <div class="col">
                     <div class="card h-100 shadow border-0 candidate-card overflow-hidden">
-                        
+
                         <!-- Foto -->
                         <div class="position-relative bg-dark">
                             <?php if (!empty($calon['foto'])): ?>
-                                <img src="<?= base_url('foto/calon/' . basename($calon['foto'])) ?>" 
-                                     class="card-img-top w-100" 
-                                     alt="<?= esc($calon['nama_calon']) ?>"
-                                     style="height: 320px; object-fit: contain; background-color: #111;">
+                                <img src="<?= base_url('foto/calon/' . basename($calon['foto'])) ?>"
+                                    class="card-img-top w-100"
+                                    alt="<?= esc($calon['nama_calon']) ?>"
+                                    style="height: 320px; object-fit: contain; background-color: #111;">
                             <?php else: ?>
                                 <div class="d-flex align-items-center justify-content-center bg-secondary" style="height: 320px;">
                                     <i class="bi bi-person-circle" style="font-size: 8rem; color: #555;"></i>
                                 </div>
                             <?php endif; ?>
-                            
+
                             <!-- Hover Overlay -->
                             <div class="hover-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                                <button onclick="pilihCalon(<?= $calon['id'] ?>, '<?= esc($calon['nama_calon']) ?><?= !empty($calon['wakil_calon']) ? ' & ' . esc($calon['wakil_calon']) : '' ?>')" 
-                                        class="btn btn-success btn-lg px-5 py-3 rounded-pill shadow"
-                                        <?= $sudahMemilih ? 'disabled' : '' ?>>
+                                <button onclick="pilihCalon(<?= $calon['id'] ?>, '<?= esc($calon['nama_calon']) ?><?= !empty($calon['wakil_calon']) ? ' & ' . esc($calon['wakil_calon']) : '' ?>')"
+                                    class="btn btn-success btn-lg px-5 py-3 rounded-pill shadow"
+                                    <?= $sudahMemilih ? 'disabled' : '' ?>>
                                     <i class="bi bi-hand-thumbs-up-fill me-2"></i> PILIH CALON INI
                                 </button>
                             </div>
@@ -54,51 +54,51 @@
 
                             <!-- Tombol Visi Misi -->
                             <button class="btn btn-outline-primary btn-sm py-2 mt-auto"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#visiMisiModal<?= $calon['id'] ?>">
+                                data-bs-toggle="modal"
+                                data-bs-target="#visiMisiModal<?= $calon['id'] ?>">
                                 <i class="bi bi-eye-fill me-1"></i> Lihat Visi & Misi
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Modal Visi & Misi - Ukuran Teks Normal & Rapi -->
-<div class="modal fade" id="visiMisiModal<?= $calon['id'] ?>" tabindex="-1">
-    <div class="modal-dialog modal-dialog-top">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold mb-0">
-                    <i class="bi bi-info-circle me-2"></i> 
-                    Visi & Misi
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4" style="line-height: 1.6;">
-                
-                <?php if (!empty($calon['visi'])): ?>
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-primary mb-3">
-                            <i class="bi bi-lightbulb-fill me-2"></i> Visi
-                        </h6>
-                        <p class="mb-0"><?= nl2br(esc($calon['visi'])) ?></p>
-                    </div>
-                <?php endif; ?>
+                <!-- Modal Visi & Misi -->
+                <div class="modal fade" id="visiMisiModal<?= $calon['id'] ?>" tabindex="-1" style="margin-top: 0px">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-primary text-white py-3">
+                                <h5 class="modal-title fw-bold mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Visi & Misi
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4" style="line-height: 1.6;">
 
-                <?php if (!empty($calon['misi'])): ?>
-                    <div>
-                        <h6 class="fw-bold text-success mb-3">
-                            <i class="bi bi-bullseye me-2"></i> Misi
-                        </h6>
-                        <p class="mb-0"><?= nl2br(esc($calon['misi'])) ?></p>
+                                <?php if (!empty($calon['visi'])): ?>
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold text-primary mb-3">
+                                            <i class="bi bi-lightbulb-fill me-2"></i> Visi
+                                        </h6>
+                                        <p class="mb-0"><?= nl2br(esc($calon['visi'])) ?></p>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if (!empty($calon['misi'])): ?>
+                                    <div>
+                                        <h6 class="fw-bold text-success mb-3">
+                                            <i class="bi bi-bullseye me-2"></i> Misi
+                                        </h6>
+                                        <p class="mb-0"><?= nl2br(esc($calon['misi'])) ?></p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="modal-footer border-0 py-3">
+                                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
                     </div>
-                <?php endif; ?>
-            </div>
-            <div class="modal-footer border-0 py-3">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
+                </div>
             <?php endforeach; ?>
         </div>
     </div>
@@ -126,70 +126,80 @@
 </div>
 
 <style>
-.candidate-card {
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border-radius: 16px;
-}
+    .candidate-card {
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border-radius: 16px;
+    }
 
-.candidate-card:hover {
-    transform: scale(1.05) translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
-}
+    .candidate-card:hover {
+        transform: scale(1.05) translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    }
 
-.hover-overlay {
-    background: rgba(0, 0, 0, 0.35);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
+    .hover-overlay {
+        background: rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
 
-.candidate-card:hover .hover-overlay {
-    opacity: 1;
-}
-#visiMisiModal .modal-body p {
-    font-size: 1rem;           /* ukuran normal */
-    line-height: 1.65;
-    color: #333;
-}
+    .candidate-card:hover .hover-overlay {
+        opacity: 1;
+    }
+
+    .modal-body p {
+        font-size: 1rem;
+        /* ukuran normal */
+        line-height: 1.65;
+    }
 </style>
+
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-let selectedCalonId = null;
+    let selectedCalonId = null;
 
-function pilihCalon(id, namaLengkap) {
-    selectedCalonId = id;
-    document.getElementById('calonName').textContent = namaLengkap;
-    new bootstrap.Modal(document.getElementById('confirmModal')).show();
-}
+    function pilihCalon(id, namaLengkap) {
+        selectedCalonId = id;
+        document.getElementById('calonName').textContent = namaLengkap;
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    }
 
-document.getElementById('confirmVoteBtn').addEventListener('click', function() {
-    if (!selectedCalonId) return;
+    document.getElementById('confirmVoteBtn').addEventListener('click', function() {
+        if (!selectedCalonId) return;
 
-    const btn = this;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
 
-    fetch('<?= base_url('user/vote') ?>', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'calon_id=' + selectedCalonId + '&<?= csrf_token() ?>=<?= csrf_hash() ?>'
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            confetti({ particleCount: 300, spread: 80, origin: { y: 0.6 } });
-            setTimeout(() => location.reload(), 1800);
-        } else {
-            alert(data.message || 'Gagal memilih');
-        }
-    })
-    .catch(() => alert('Terjadi kesalahan'))
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = 'Ya, Pilih';
+        fetch('<?= base_url('user/vote') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'calon_id=' + selectedCalonId + '&<?= csrf_token() ?>=<?= csrf_hash() ?>'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    confetti({
+                        particleCount: 300,
+                        spread: 80,
+                        origin: {
+                            y: 0.6
+                        }
+                    });
+                    setTimeout(() => location.reload(), 1800);
+                } else {
+                    alert(data.message || 'Gagal memilih');
+                }
+            })
+            .catch(() => alert('Terjadi kesalahan'))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = 'Ya, Pilih';
+            });
     });
-});
 </script>
 
 <?= $this->endSection(); ?>

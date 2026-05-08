@@ -71,24 +71,22 @@
                             style="height: 222.6px; object-fit: contain; background-color: #212529; cursor: pointer;"
                             data-bs-toggle="modal"
                             data-bs-target="#fotoModal<?= $c['id'] ?>">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h4 class="mb-0">
                                     <?= esc($c['nama_calon']) ?>
                                     <?= !empty($c['wakil_calon']) ? ' & ' . esc($c['wakil_calon']) : '' ?>
                                 </h4>
                                 <span class="badge bg-success"><?= esc($c['kategori']) ?></span>
                             </div>
-                            <hr style="margin: 6px 0px;">
-                            <?php if (!empty($c['visi'])): ?>
-                                <p class="mb-1"><strong>Visi:</strong><br><?= nl2br(esc($c['visi'])) ?></p>
-                                <hr style="margin: 6px 0;">
-                            <?php endif; ?>
-                            <?php if (!empty($c['misi'])): ?>
-                                <p class="mb-1"><strong>Misi:</strong><br><?= nl2br(esc($c['misi'])) ?></p>
-                                <hr style="margin: 6px 0;">
-                            <?php endif; ?>
-                            <div class="d-flex justify-content-end mt-3">
+                            
+                            <button class="btn btn-outline-primary btn-sm w-100 mb-3"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#visiMisiModal<?= $c['id'] ?>">
+                                <i class="bi bi-eye-fill me-1"></i> Lihat Visi & Misi
+                            </button>
+
+                            <div class="d-flex justify-content-end mt-auto">
                                 <a href="javascript:void(0)" class="btn btn-secondary btn-sm w-100 me-1 btnEditCalon" data-id="<?= $c['id'] ?>">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
@@ -98,7 +96,46 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Modal Visi & Misi -->
+                    <div class="modal fade" id="visiMisiModal<?= $c['id'] ?>" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-primary text-white py-3">
+                                    <h5 class="modal-title fw-bold mb-0">
+                                        <i class="bi bi-info-circle me-2"></i> 
+                                        Visi & Misi
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4" style="line-height: 1.6;">
+                                    <?php if (!empty($c['visi'])): ?>
+                                        <div class="mb-4">
+                                            <h6 class="fw-bold text-primary mb-3">
+                                                <i class="bi bi-lightbulb-fill me-2"></i> Visi
+                                            </h6>
+                                            <p class="mb-0"><?= nl2br(esc($c['visi'])) ?></p>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($c['misi'])): ?>
+                                        <div>
+                                            <h6 class="fw-bold text-success mb-3">
+                                                <i class="bi bi-bullseye me-2"></i> Misi
+                                            </h6>
+                                            <p class="mb-0"><?= nl2br(esc($c['misi'])) ?></p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="modal-footer border-0 py-3">
+                                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="modal fade" id="fotoModal<?= $c['id'] ?>" tabindex="-1" aria-hidden="true">
+
                         <div class="modal-dialog modal-dialog-centered" style="max-width: calc(68vh * 1.346);">
                             <div class="modal-content bg-dark">
                                 <div class="modal-body p-0 text-center">
@@ -432,7 +469,7 @@
                     const visi = data.newCalon.visi || '';
                     const misi = data.newCalon.misi || '';
 
-                    newCard.innerHTML = `
+                                        newCard.innerHTML = `
                             <div class="card shadow-sm border-0">
                                 <img src="${fotoUrl}"
                                     class="card-img-top"
@@ -440,17 +477,21 @@
                                     style="height: 222.6px; object-fit: contain; background-color: #212529; cursor: pointer;"
                                     data-bs-toggle="modal"
                                     data-bs-target="#fotoModal${id}">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h4 class="mb-0">
                                             ${namaCalon}${wakilCalon ? ' & ' + wakilCalon : ''}
                                         </h4>
                                         <span class="badge bg-success">${kategori}</span>
                                     </div>
-                                    <hr style="margin: 6px 0px;">
-                                    ${visi ? `<p class="mb-1"><strong>Visi:</strong><br>${visi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
-                                    ${misi ? `<p class="mb-1"><strong>Misi:</strong><br>${misi.replace(/\n/g, '<br>')}</p><hr style="margin: 6px 0;">` : ''}
-                                    <div class="d-flex justify-content-end mt-3">
+                                    
+                                    <button class="btn btn-outline-primary btn-sm w-100 mb-3"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#visiMisiModal${id}">
+                                        <i class="bi bi-eye-fill me-1"></i> Lihat Visi & Misi
+                                    </button>
+
+                                    <div class="d-flex justify-content-end mt-auto">
                                         <a href="javascript:void(0)" class="btn btn-secondary btn-sm w-100 me-1 btnEditCalon" data-id="${id}">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
@@ -460,6 +501,43 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Modal Visi & Misi -->
+                            <div class="modal fade" id="visiMisiModal${id}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow">
+                                        <div class="modal-header bg-primary text-white py-3">
+                                            <h5 class="modal-title fw-bold mb-0">
+                                                <i class="bi bi-info-circle me-2"></i> 
+                                                Visi & Misi
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4" style="line-height: 1.6;">
+                                            ${visi ? `
+                                                <div class="mb-4">
+                                                    <h6 class="fw-bold text-primary mb-3">
+                                                        <i class="bi bi-lightbulb-fill me-2"></i> Visi
+                                                    </h6>
+                                                    <p class="mb-0">${visi.replace(/\n/g, '<br>')}</p>
+                                                </div>
+                                            ` : ''}
+                                            ${misi ? `
+                                                <div>
+                                                    <h6 class="fw-bold text-success mb-3">
+                                                        <i class="bi bi-bullseye me-2"></i> Misi
+                                                    </h6>
+                                                    <p class="mb-0">${misi.replace(/\n/g, '<br>')}</p>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        <div class="modal-footer border-0 py-3">
+                                            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="modal fade" id="fotoModal${id}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered" style="max-width: calc(68vh * 1.346);">
                                     <div class="modal-content bg-dark">
@@ -473,6 +551,7 @@
                                 </div>
                             </div>
                         `;
+
 
                     // Tambahkan card ke dalam daftar setelah header
                     document.getElementById('calonList').appendChild(newCard);
