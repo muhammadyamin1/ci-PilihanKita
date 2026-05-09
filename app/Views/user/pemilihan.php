@@ -74,24 +74,18 @@
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body p-4" style="line-height: 1.6;">
-
-                                <?php if (!empty($calon['visi'])): ?>
-                                    <div class="mb-4">
-                                        <h6 class="fw-bold text-primary mb-3">
-                                            <i class="bi bi-lightbulb-fill me-2"></i> Visi
-                                        </h6>
-                                        <p class="mb-0"><?= nl2br(esc($calon['visi'])) ?></p>
-                                    </div>
-                                <?php endif; ?>
-
-                                <?php if (!empty($calon['misi'])): ?>
-                                    <div>
-                                        <h6 class="fw-bold text-success mb-3">
-                                            <i class="bi bi-bullseye me-2"></i> Misi
-                                        </h6>
-                                        <p class="mb-0"><?= nl2br(esc($calon['misi'])) ?></p>
-                                    </div>
-                                <?php endif; ?>
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-primary mb-3">
+                                        <i class="bi bi-lightbulb-fill me-2"></i> Visi
+                                    </h6>
+                                    <p class="mb-0"><?= !empty($calon['visi']) ? nl2br(esc($calon['visi'])) : '<em class="text-muted">— (Tidak ada visi)</em>' ?></p>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-3">
+                                        <i class="bi bi-bullseye me-2"></i> Misi
+                                    </h6>
+                                    <p class="mb-0"><?= !empty($calon['misi']) ? nl2br(esc($calon['misi'])) : '<em class="text-muted">— (Tidak ada misi)</em>' ?></p>
+                                </div>
                             </div>
                             <div class="modal-footer border-0 py-3">
                                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>

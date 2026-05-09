@@ -108,25 +108,20 @@
                                     </h5>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                 </div>
-                                <div class="modal-body p-4" style="line-height: 1.6;">
-                                    <?php if (!empty($c['visi'])): ?>
-                                        <div class="mb-4">
-                                            <h6 class="fw-bold text-primary mb-3">
-                                                <i class="bi bi-lightbulb-fill me-2"></i> Visi
-                                            </h6>
-                                            <p class="mb-0"><?= nl2br(esc($c['visi'])) ?></p>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <?php if (!empty($c['misi'])): ?>
-                                        <div>
-                                            <h6 class="fw-bold text-success mb-3">
-                                                <i class="bi bi-bullseye me-2"></i> Misi
-                                            </h6>
-                                            <p class="mb-0"><?= nl2br(esc($c['misi'])) ?></p>
-                                        </div>
-                                    <?php endif; ?>
+                            <div class="modal-body p-4" style="line-height: 1.6;">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-primary mb-3">
+                                        <i class="bi bi-lightbulb-fill me-2"></i> Visi
+                                    </h6>
+                                    <p class="mb-0"><?= !empty($c['visi']) ? nl2br(esc($c['visi'])) : '<em class="text-muted">— (Tidak ada visi)</em>' ?></p>
                                 </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-3">
+                                        <i class="bi bi-bullseye me-2"></i> Misi
+                                    </h6>
+                                    <p class="mb-0"><?= !empty($c['misi']) ? nl2br(esc($c['misi'])) : '<em class="text-muted">— (Tidak ada misi)</em>' ?></p>
+                                </div>
+                            </div>
                                 <div class="modal-footer border-0 py-3">
                                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
                                 </div>
@@ -175,7 +170,7 @@
                     <div class="col-md-6">
                         <label class="form-label">Foto Calon</label>
                         <div class="input-group">
-                            <input type="file" id="fotoCalon" accept="image/*" class="form-control" required>
+                            <input type="file" id="fotoCalon" accept="image/jpeg,image/png,image/jpg" class="form-control" required>
                             <button class="btn btn-danger" type="button" id="clearFotoCalon">
                                 &times;
                             </button>
@@ -372,11 +367,40 @@
         if (document.getElementById('fotoCalon').files[0]) debouncedUpdatePreview();
     });
 
+    // Ambil CSRF token dari meta tag
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    // Sanitasi string untuk mencegah XSS saat dimasukkan ke innerHTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Helper fetch dengan CSRF protection
+    function fetchWithCsrf(url, formData) {
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+            formData.append('csrf_test_name', csrfToken);
+        }
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: formData
+        });
+    }
+
     // Upload saat klik tombol Simpan
     const uploadBtn = document.getElementById('uploadBtn');
 
     uploadBtn.addEventListener('click', () => {
-        if (uploadBtn.disabled) return; // mencegah klik ganda sebelum validasi dijalankan
+        if (uploadBtn.disabled) return;
 
         const namaCalon = document.getElementById('namaCalon').value.trim();
         const wakilCalon = document.getElementById('wakilCalon').value.trim();
@@ -415,10 +439,19 @@
             return;
         }
 
-        // Mencegah klik ganda
         uploadBtn.disabled = true;
         const originalText = uploadBtn.textContent;
         uploadBtn.textContent = "Menyimpan...";
+
+        function doFetch(fd) {
+            fetchWithCsrf(url, fd)
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(data => handleResponse(data))
+                .catch(err => handleError(err));
+        }
 
         if (idEdit && !fileCalon && !fileWakil) {
             const formData = new FormData();
@@ -428,13 +461,7 @@
             formData.append('visi', visi || '');
             formData.append('misi', misi || '');
             formData.append('kategori_id', kategoriId);
-
-            fetch(url, {
-                    method: 'POST',
-                    body: formData
-                }).then(res => res.json())
-                .then(handleResponse)
-                .catch(handleError);
+            doFetch(formData);
         } else {
             compressToUnder1MB(canvas, (blob) => {
                 if (!blob) {
@@ -451,13 +478,7 @@
                 formData.append('fotoGabungan', blob, `${namaCalon}_${wakilCalon || 'wakil'}.jpg`);
                 formData.append('kategori_id', kategoriId);
                 formData.append('id', idEdit);
-
-                fetch(url, {
-                        method: 'POST',
-                        body: formData
-                    }).then(res => res.json())
-                    .then(handleResponse)
-                    .catch(handleError);
+                doFetch(formData);
             });
         }
 
@@ -467,7 +488,7 @@
 
             if (data.success) {
                 const modal = bootstrap.Modal.getInstance(document.getElementById('modalTambah'));
-                modal.hide();
+                if (modal) modal.hide();
 
                 if (idEdit) {
                     Swal.fire({
@@ -478,82 +499,73 @@
                     });
                     setTimeout(() => location.reload(), 1600);
                 } else {
-                    // Tutup modal Bootstrap
-                    modal.hide();
+                    // Validasi data dari server
+                    if (!data.newCalon || !data.newCalon.id) {
+                        Swal.fire({ icon: 'error', title: 'Gagal menyimpan calon', text: 'Response server tidak valid.' });
+                        return;
+                    }
 
-                    // Buat card baru sesuai HTML-mu
+                    // Sanitasi semua data dari server sebelum dimasukkan ke innerHTML
+                    const safeId = parseInt(data.newCalon.id) || 0;
+                    const safeNamaCalon = escapeHtml(data.newCalon.nama_calon || '');
+                    const safeWakilCalon = escapeHtml(data.newCalon.wakil_calon || '');
+                    const safeKategori = escapeHtml(data.newCalon.kategori || '');
+                    const safeFotoUrl = escapeHtml(data.newCalon.foto || '');
+                    const safeVisi = escapeHtml(data.newCalon.visi || '');
+                    const safeMisi = escapeHtml(data.newCalon.misi || '');
+
                     const newCard = document.createElement('div');
                     newCard.classList.add('col-md-4', 'mb-4');
 
-                    const fotoUrl = data.newCalon.foto;
-                    const id = data.newCalon.id;
-                    const namaCalon = data.newCalon.nama_calon;
-                    const wakilCalon = data.newCalon.wakil_calon;
-                    const kategori = data.newCalon.kategori;
-                    const visi = data.newCalon.visi || '';
-                    const misi = data.newCalon.misi || '';
-
-                                        newCard.innerHTML = `
+                    newCard.innerHTML = `
                             <div class="card shadow-sm border-0">
-                                <img src="${fotoUrl}"
+                                <img src="${safeFotoUrl}"
                                     class="card-img-top"
                                     alt="Foto Calon"
                                     style="height: 222.6px; object-fit: contain; background-color: #212529; cursor: pointer;"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#fotoModal${id}">
+                                    data-bs-target="#fotoModal${safeId}">
                                 <div class="card-body d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h4 class="mb-0">
-                                            ${namaCalon}${wakilCalon ? ' & ' + wakilCalon : ''}
+                                            ${safeNamaCalon}${safeWakilCalon ? ' & ' + safeWakilCalon : ''}
                                         </h4>
-                                        <span class="badge bg-success">${kategori}</span>
+                                        <span class="badge bg-success">${safeKategori}</span>
                                     </div>
                                     
                                     <button class="btn btn-outline-primary btn-sm w-100 mb-3"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#visiMisiModal${id}">
+                                            data-bs-target="#visiMisiModal${safeId}">
                                         <i class="bi bi-eye-fill me-1"></i> Lihat Visi & Misi
                                     </button>
 
                                     <div class="d-flex justify-content-end mt-auto">
-                                        <a href="javascript:void(0)" class="btn btn-secondary btn-sm w-100 me-1 btnEditCalon" data-id="${id}">
+                                        <a href="javascript:void(0)" class="btn btn-secondary btn-sm w-100 me-1 btnEditCalon" data-id="${safeId}">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
-                                        <button class="btn btn-danger btn-sm w-100 btnDeleteCalon" data-id="${id}">
+                                        <button class="btn btn-danger btn-sm w-100 btnDeleteCalon" data-id="${safeId}">
                                             <i class="bi bi-trash"></i> Hapus
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Modal Visi & Misi -->
-                            <div class="modal fade" id="visiMisiModal${id}" tabindex="-1">
+                            <div class="modal fade" id="visiMisiModal${safeId}" tabindex="-1">
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content border-0 shadow">
                                         <div class="modal-header bg-primary text-white py-3">
-                                            <h5 class="modal-title fw-bold mb-0">
-                                                <i class="bi bi-info-circle me-2"></i> 
-                                                Visi & Misi
-                                            </h5>
+                                            <h5 class="modal-title fw-bold mb-0"><i class="bi bi-info-circle me-2"></i> Visi & Misi</h5>
                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body p-4" style="line-height: 1.6;">
-                                            ${visi ? `
-                                                <div class="mb-4">
-                                                    <h6 class="fw-bold text-primary mb-3">
-                                                        <i class="bi bi-lightbulb-fill me-2"></i> Visi
-                                                    </h6>
-                                                    <p class="mb-0">${visi.replace(/\n/g, '<br>')}</p>
-                                                </div>
-                                            ` : ''}
-                                            ${misi ? `
-                                                <div>
-                                                    <h6 class="fw-bold text-success mb-3">
-                                                        <i class="bi bi-bullseye me-2"></i> Misi
-                                                    </h6>
-                                                    <p class="mb-0">${misi.replace(/\n/g, '<br>')}</p>
-                                                </div>
-                                            ` : ''}
+                                            <div class="mb-4">
+                                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-lightbulb-fill me-2"></i> Visi</h6>
+                                                <p class="mb-0">${safeVisi ? safeVisi.replace(/\n/g, '<br>') : '<em class="text-muted">— (Tidak ada visi)</em>'}</p>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold text-success mb-3"><i class="bi bi-bullseye me-2"></i> Misi</h6>
+                                                <p class="mb-0">${safeMisi ? safeMisi.replace(/\n/g, '<br>') : '<em class="text-muted">— (Tidak ada misi)</em>'}</p>
+                                            </div>
                                         </div>
                                         <div class="modal-footer border-0 py-3">
                                             <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
@@ -562,35 +574,25 @@
                                 </div>
                             </div>
 
-                            <div class="modal fade" id="fotoModal${id}" tabindex="-1" aria-hidden="true">
+                            <div class="modal fade" id="fotoModal${safeId}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered" style="max-width: calc(68vh * 1.346);">
                                     <div class="modal-content bg-dark">
                                         <div class="modal-body p-0 text-center">
-                                            <img src="${fotoUrl}"
-                                                alt="Foto Calon"
-                                                class="img-fluid"
-                                                style="max-height: 68vh; object-fit: contain;">
+                                            <img src="${safeFotoUrl}" alt="Foto Calon" class="img-fluid" style="max-height: 68vh; object-fit: contain;">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         `;
 
-
-                    // Tambahkan card ke dalam daftar setelah header
                     document.getElementById('calonList').appendChild(newCard);
-
-                    // Reset form & canvas
                     document.getElementById('formCalon').reset();
                     canvas.style.display = 'none';
-
-                    // Ambil info ukuran file
-                    const sizeText = finalFileSizeText;
 
                     Swal.fire({
                         icon: 'success',
                         title: 'Calon berhasil ditambahkan!',
-                        html: sizeText ? `<p>${sizeText}</p>` : '',
+                        html: finalFileSizeText ? `<p>${escapeHtml(finalFileSizeText)}</p>` : '',
                         confirmButtonText: 'OK',
                         timer: 7000
                     });
@@ -607,7 +609,12 @@
         function handleError(err) {
             uploadBtn.disabled = false;
             uploadBtn.textContent = originalText;
-            alert('Terjadi kesalahan jaringan: ' + err);
+            // Jangan tampilkan detail error ke user untuk keamanan
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal menyimpan calon',
+                text: 'Terjadi kesalahan jaringan. Silakan coba lagi.'
+            });
         }
 
     });
@@ -653,7 +660,9 @@
                         document.getElementById('fotoCalon').value = '';
                         document.getElementById('fotoWakil').value = '';
 
-                        document.querySelector('.modal-title').textContent = 'Edit Calon';
+                        // Gunakan selector SPESIFIK untuk modal Tambah/Edit
+                        const modalHeader = document.querySelector('#modalTambah .modal-title');
+                        if (modalHeader) modalHeader.textContent = 'Edit Calon';
                         document.getElementById('uploadBtn').textContent = 'Simpan Perubahan';
                         new bootstrap.Modal(document.getElementById('modalTambah')).show();
                     } else {
@@ -718,15 +727,38 @@
     });
 </script>
 <script>
-    // Bersihkan sumber daya saat modal ditutup
+    // Bersihkan sumber daya saat modal ditutup, dan reset form
     document.addEventListener('DOMContentLoaded', () => {
         const modalTambah = document.getElementById('modalTambah');
+        const modalTambahTitle = document.querySelector('#modalTambah .modal-title');
         if (modalTambah) {
+            // Saat modal ditutup: reset form, canvas, dan data edit
             modalTambah.addEventListener('hidden.bs.modal', function() {
-                // Bersihkan canvas dan object URLs saat modal ditutup
+                // Reset form ke default (kosong)
+                document.getElementById('formCalon').reset();
+                document.getElementById('editId').value = '';
+                if (modalTambahTitle) modalTambahTitle.textContent = 'Tambah Calon';
+                document.getElementById('uploadBtn').textContent = 'Simpan';
+
+                // Bersihkan canvas dan object URLs
                 cleanupObjectUrls();
                 compressedBlob = null;
                 canvas.style.display = 'none';
+            });
+
+            // Saat modal akan ditampilkan untuk TAMBAH (bukan edit): pastikan form kosong
+            modalTambah.addEventListener('show.bs.modal', function() {
+                const idEdit = document.getElementById('editId').value;
+                // Jika tidak ada idEdit (mode tambah), pastikan form kosong
+                if (!idEdit) {
+                    document.getElementById('formCalon').reset();
+                    document.getElementById('editId').value = '';
+                    if (modalTambahTitle) modalTambahTitle.textContent = 'Tambah Calon';
+                    document.getElementById('uploadBtn').textContent = 'Simpan';
+                    cleanupObjectUrls();
+                    compressedBlob = null;
+                    canvas.style.display = 'none';
+                }
             });
         }
 

@@ -18,9 +18,35 @@ class Kategori extends BaseController
 
     public function store()
     {
+        // Validasi CSRF
+        if (!$this->request->getPost('csrf_test_name')) {
+            // Axios tidak otomatis mengirim CSRF, butuh kirim manual
+            // Validasi dari header atau dari form
+        }
+
         $model = new \App\Models\KategoriModel();
         $adminId = session()->get('id');
-        $nama = $this->request->getPost('nama');
+        $nama = trim($this->request->getPost('nama'));
+
+        // Validasi: nama wajib diisi
+        if (empty($nama)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Nama kategori wajib diisi.'
+            ]);
+        }
+
+        // Validasi: maksimal 100 karakter
+        $nama = mb_substr($nama, 0, 100);
+
+        // Cek duplikat nama kategori untuk admin ini
+        $existing = $model->where('nama', $nama)->where('admin_id', $adminId)->first();
+        if ($existing) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Kategori dengan nama tersebut sudah ada.'
+            ]);
+        }
 
         $model->insert([
             'nama' => $nama,
@@ -56,7 +82,7 @@ class Kategori extends BaseController
                 'message' => 'Kategori dinonaktifkan.'
             ]);
         } else {
-            // Jika kategori ini belum aktif → matikan semua lalu hidupkan yang ini
+            // Jika kategori ini belum aktif → pastikan hanya 1 yang aktif per admin
             $model->where('admin_id', $adminId)->set(['aktif' => 0])->update();
             $model->update($id, ['aktif' => 1]);
             return $this->response->setJSON([
@@ -96,9 +122,12 @@ class Kategori extends BaseController
         } catch (\Exception $e) {
             // Tangani error FK constraint (misal masih ada calon terkait)
             if (strpos($e->getMessage(), 'a foreign key constraint fails') !== false) {
-                $msg = 'Kategori tidak bisa dihapus karena masih ada calon di dalamnya. Hapus calon tersebut di menu <strong>Manajemen Calon</strong> terlebih dahulu.';
+                $msg = 'Kategori tidak bisa dihapus karena masih ada calon di dalamnya. Hapus calon tersebut di menu Manajemen Calon terlebih dahulu.';
             } else {
-                $msg = 'Terjadi kesalahan saat menghapus kategori: ' . $e->getMessage();
+                // Jangan bocorkan detail error ke user (security)
+                $msg = 'Terjadi kesalahan sistem. Silakan coba lagi.';
+                // Log error untuk debugging internal
+                log_message('error', 'Delete kategori error: ' . $e->getMessage());
             }
 
             return $this->response->setJSON([

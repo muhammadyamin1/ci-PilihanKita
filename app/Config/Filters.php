@@ -109,5 +109,8 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        // Aktifkan CSRF protection untuk semua route admin (POST/PUT/DELETE)
+        'csrf' => ['before' => ['admin/*']],
+    ];
 }

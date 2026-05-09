@@ -145,21 +145,23 @@
     </div>
 </div>
 
-<script src="<?= base_url('js/axios.min.js') ?>"></script>
 <script>
-    // Ambil base URL CI4 (termasuk subfolder jika ada)
-    // Di localhost: http://localhost/ci-PilihanKita/
-    // Di production: https://namadomain.com/
+    // Konfigurasi global axios - sudah define di bawah
     const BASE_URL = '<?= base_url() ?>';
 
-    // Konfigurasi global axios
-    axios.defaults.baseURL = BASE_URL;
-</script>
-<script>
+    // Sanitasi string untuk mencegah XSS saat ditampilkan via innerHTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function showFlash(message, type = 'success') {
+        // Sanitasi message untuk mencegah XSS
+        const safeMessage = escapeHtml(message);
         const alert = `
         <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            ${message}
+            ${safeMessage}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>`;
 
@@ -174,25 +176,44 @@
         }, duration);
     }
 
+    // Ambil CSRF token dari meta atau cookie
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    // Helper untuk POST dengan axios + CSRF
+    function axiosPostCsrf(url, data = {}) {
+        return axios.post(url, data, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': getCsrfToken()
+            }
+        });
+    }
+
     function toggleActive(id, event) {
         const clickedCheckbox = event.target;
         const wasChecked = clickedCheckbox.checked;
 
         clickedCheckbox.disabled = true;
 
-        axios.post(`/admin/kategori/toggle/${id}`)
+        axiosPostCsrf(`/admin/kategori/toggle/${id}`)
             .then(res => {
-                showFlash(res.data.message);
+                // Sanitasi message dari server
+                const message = res.data.message || '';
+                showFlash(message);
 
-                if (res.data.message.includes('diaktifkan')) {
+                if (message.includes('diaktifkan')) {
                     // Kalau kategori diaktifkan → matikan semua kecuali yang diklik
                     document.querySelectorAll('.switch input[type="checkbox"]').forEach(cb => cb.checked = false);
                     clickedCheckbox.checked = true;
 
-                    // Ubah alert ke kategori aktif
+                    // Ubah alert ke kategori aktif (textContent aman dari XSS)
+                    const namaKategori = clickedCheckbox.closest('tr').querySelector('td:nth-child(2)').textContent;
                     document.getElementById('status-alert').innerHTML =
                         `<div class="alert alert-success">
-                        Voting aktif di kategori: <strong>${clickedCheckbox.closest('tr').querySelector('td:nth-child(2)').textContent}</strong>
+                        Voting aktif di kategori: <strong>${escapeHtml(namaKategori)}</strong>
                     </div>`;
                 } else {
                     // Kalau dinonaktifkan → biarkan semua off
@@ -205,16 +226,14 @@
                 }
             })
             .catch(e => {
-                let pesanError = 'Terjadi kesalahan tak terduga.';
+                let pesanError = 'Gagal mengubah status kategori.';
 
-                // Jika 'e' adalah objek respons fetch atau memiliki pesan kesalahan
-                if (e && e.message) {
-                    pesanError = e.message;
-                } else if (typeof e === 'string') {
-                    pesanError = e;
+                // Ambil pesan error dari response server jika ada
+                if (e.response && e.response.data && e.response.data.message) {
+                    pesanError = e.response.data.message;
                 }
 
-                showFlash('Gagal mengubah status kategori. Detail: ' + pesanError, 'danger');
+                showFlash(pesanError, 'danger');
                 clickedCheckbox.checked = wasChecked;
             })
             .finally(() => {
@@ -225,16 +244,18 @@
     function hapusKategori(id, nama) {
         if (!confirm(`Yakin ingin menghapus kategori "${nama}"?`)) return;
 
-        axios.post(`/admin/kategori/delete/${id}`)
+        axiosPostCsrf(`/admin/kategori/delete/${id}`)
             .then(res => {
                 if (res.data.success) {
-                    showFlash(res.data.message);
+                    showFlash(res.data.message || 'Kategori berhasil dihapus.');
 
                     const row = document.getElementById(`row-${id}`);
+                    if (!row) return;
+
                     const checkbox = row.querySelector('.switch input[type="checkbox"]');
 
                     // Jika kategori yang dihapus sedang aktif
-                    if (checkbox.checked) {
+                    if (checkbox && checkbox.checked) {
                         document.getElementById('status-alert').innerHTML = `
                         <div class="alert alert-warning">
                             Belum ada kategori aktif. Voting belum dimulai.
@@ -244,102 +265,116 @@
                     // Hapus baris dari tabel tanpa reload
                     row.remove();
                 } else {
-                    showFlash(res.data.message, 'danger');
+                    showFlash(res.data.message || 'Gagal menghapus kategori.', 'danger');
                 }
             })
             .catch(error => {
-                let msg = 'Terjadi kesalahan tak terduga.';
+                let msg = 'Gagal menghapus kategori.';
 
-                // Jika 'e' adalah objek respons fetch atau memiliki pesan kesalahan
-                if (error && error.message) {
-                    msg = error.message;
-                } else if (typeof e === 'string') {
-                    msg = error;
+                // Ambil pesan error dari response server jika ada
+                if (error.response && error.response.data && error.response.data.message) {
+                    msg = error.response.data.message;
                 }
 
-                showFlash('Gagal menghapus kategori. Detail: ' + msg, 'danger');
+                showFlash(msg, 'danger');
             });
     }
+</script>
+<script src="<?= base_url('js/axios.min.js') ?>"></script>
+<script>
+    // Konfigurasi global axios setelah script dimuat
+    axios.defaults.baseURL = BASE_URL;
+</script>
+<script>
+    function submitTambahKategori() {
+        const form = document.getElementById('formTambah');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const inputNama = form.querySelector('input[name="nama"]');
+        const nama = inputNama.value.trim();
 
+        // Validasi frontend: nama tidak boleh kosong
+        if (!nama) {
+            showFlash('Nama kategori wajib diisi.', 'danger');
+            inputNama.focus();
+            return;
+        }
+
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Menyimpan...';
+
+        const formData = new FormData(form);
+        axiosPostCsrf('/admin/kategori/store', formData)
+            .then(res => {
+                if (res.data.success) {
+                    showFlash(res.data.message);
+
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalTambah'));
+                    modal.hide();
+
+                    // Tambahkan baris baru ke tabel
+                    const tbody = document.querySelector('table tbody');
+                    const newRow = document.createElement('tr');
+                    const newId = res.data.newId ?? 'baru';
+                    const rowCount = tbody.querySelectorAll('tr').length + 1;
+                    const safeNama = escapeHtml(nama);
+
+                    newRow.id = `row-${newId}`;
+                    newRow.innerHTML = `
+                        <td>${rowCount}</td>
+                        <td>${safeNama}</td>
+                        <td>
+                        <label class="switch">
+                            <input type="checkbox" onchange="toggleActive(${newId}, event)">
+                            <span class="slider"></span>
+                        </label>
+                        </td>
+                        <td>
+                        <button class="btn btn-danger btn-sm" onclick="hapusKategori(${newId}, '${safeNama.replace(/'/g, "\\'")}')">
+                            <i class="bi bi-trash"></i> Hapus
+                        </button>
+                        </td>
+                    `;
+                    tbody.appendChild(newRow);
+
+                    form.reset();
+                } else {
+                    showFlash(res.data.message || 'Gagal menambah kategori.', 'danger');
+                }
+            })
+            .catch(error => {
+                let msg = 'Gagal menambah kategori.';
+                if (error.response && error.response.data && error.response.data.message) {
+                    msg = error.response.data.message;
+                }
+                showFlash(msg, 'danger');
+            })
+            .finally(() => {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Simpan';
+            });
+    }
+</script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         // Tangkap modal
         const modalTambahEl = document.getElementById('modalTambah');
 
         // Event saat modal benar-benar ditampilkan
         modalTambahEl.addEventListener('shown.bs.modal', function() {
-            // delay sedikit supaya fokus tidak gagal karena animasi
             setTimeout(() => {
                 const inputNama = modalTambahEl.querySelector('input[name="nama"]');
                 if (inputNama) inputNama.focus();
-            }, 100); // 100ms biasanya cukup
+            }, 100);
         });
 
-        // Handler submit form tetap seperti sebelumnya
+        // Handler submit form tetap
         document.getElementById('formTambah').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btnSubmit = document.getElementById('btnSubmit');
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = 'Menyimpan...';
-            axios.post('/admin/kategori/store', new FormData(this))
-                .then(res => {
-                    if (res.data.success) {
-                        showFlash(res.data.message);
-
-                        // Tutup modal
-                        const modal = bootstrap.Modal.getInstance(modalTambahEl);
-                        modal.hide();
-
-                        // Tambahkan baris baru ke tabel
-                        const tbody = document.querySelector('table tbody');
-                        const newRow = document.createElement('tr');
-                        const newId = res.data.newId ?? 'baru'; // kalau controller kirim ID baru
-                        const rowCount = tbody.querySelectorAll('tr').length + 1;
-
-                        newRow.id = `row-${newId}`;
-                        newRow.innerHTML = `
-                            <td>${rowCount}</td>
-                            <td>${document.querySelector('[name="nama"]').value}</td>
-                            <td>
-                            <label class="switch">
-                                <input type="checkbox" onchange="toggleActive(${newId}, event)">
-                                <span class="slider"></span>
-                            </label>
-                            </td>
-                            <td>
-                            <button class="btn btn-danger btn-sm" onclick="hapusKategori(${newId}, '${document.querySelector('[name="nama"]').value}')">
-                                <i class="bi bi-trash"></i> Hapus
-                            </button>
-                            </td>
-                        `;
-                        tbody.appendChild(newRow);
-
-                        btnSubmit.disabled = false;
-                        btnSubmit.textContent = 'Simpan';
-
-                        // Kosongkan form input
-                        document.getElementById('formTambah').reset();
-                    }
-                })
-                .catch(error => {
-                    let msg = 'Terjadi kesalahan tak terduga.';
-
-                    // Jika 'e' adalah objek respons fetch atau memiliki pesan kesalahan
-                    if (error && error.message) {
-                        msg = error.message;
-                    } else if (typeof e === 'string') {
-                        msg = error;
-                    }
-
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Simpan';
-
-                    // Tutup modal
-                    const modal = bootstrap.Modal.getInstance(modalTambahEl);
-                    modal.hide();
-                    showFlash('Gagal menambah kategori. Detail: ' + msg, 'danger');
-                });
+            submitTambahKategori();
         });
     });
+
+    // (Script handler submit sudah di atas - submitTambahKategori)
 </script>
 
 <?= $this->endSection(); ?>

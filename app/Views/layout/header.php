@@ -54,6 +54,9 @@
     <!--begin::Required Plugin(AdminLTE)-->
     <link rel="stylesheet" href="<?= base_url('assets/adminlte/css/adminlte.css') ?>" />
     <!--end::Required Plugin(AdminLTE)-->
+
+    <!-- CSRF Token untuk AJAX request -->
+    <meta name="csrf-token" content="<?= csrf_hash() ?>">
   </head>
   <body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
     <!--begin::App Wrapper-->
