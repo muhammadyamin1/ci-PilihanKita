@@ -311,21 +311,29 @@
 
     function compressToUnder1MB(canvas, callback) {
         let quality = 0.9;
+        let attempts = 0;
+        const maxAttempts = 8; // batasi maksimal 8 kali percobaan
 
         function tryCompress() {
+            attempts++;
             canvas.toBlob((blob) => {
+                if (!blob) {
+                    console.error('Gagal membuat blob');
+                    if (typeof callback === 'function') callback(null);
+                    return;
+                }
                 const sizeKB = blob.size / 1024;
                 const sizeMB = sizeKB / 1024;
 
-                if (sizeMB > 1 && quality > 0.2) {
+                if (sizeMB > 1 && quality > 0.2 && attempts < maxAttempts) {
                     // Turunkan kualitas bertahap
                     quality -= 0.1;
-                    tryCompress();
+                    // Gunakan setTimeout untuk menghindari stack overflow
+                    setTimeout(tryCompress, 0);
                 } else {
                     compressedBlob = blob;
-                    // Selesai, tampilkan info ukuran akhir (disimpan untuk SweetAlert)
                     finalFileSizeText = `Estimasi ukuran file: ${sizeKB.toFixed(2)} KB (Quality ${quality.toFixed(1)})`;
-                    console.log(`Final size: ${sizeKB.toFixed(2)} KB, Quality: ${quality.toFixed(1)}`);
+                    console.log(`Final size: ${sizeKB.toFixed(2)} KB, Quality: ${quality.toFixed(1)}, Attempts: ${attempts}`);
                     if (typeof callback === 'function') {
                         callback(blob);
                     }
@@ -336,16 +344,32 @@
         tryCompress();
     }
 
+    // --- DEBOUNCE function untuk mencegah terlalu banyak rendering ---
+    let debounceTimer;
+    function debouncedUpdatePreview() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            updatePreview();
+        }, 300); // tunggu 300ms setelah user selesai mengetik
+    }
+
+    // Bersihkan canvas dan URL object ketika tidak diperlukan
+    let _objectUrls = [];
+    function cleanupObjectUrls() {
+        _objectUrls.forEach(url => URL.revokeObjectURL(url));
+        _objectUrls = [];
+    }
+
     // Event listener: trigger hanya saat file calon/wakil berubah
     document.getElementById('fotoCalon').addEventListener('change', updatePreview);
     document.getElementById('fotoWakil').addEventListener('change', updatePreview);
 
-    // Nama calon/wakil bisa ikut trigger jika ingin teks muncul otomatis
+    // Nama calon/wakil menggunakan DEBOUNCE agar tidak terlalu sering render
     document.getElementById('namaCalon').addEventListener('input', () => {
-        if (document.getElementById('fotoCalon').files[0]) updatePreview();
+        if (document.getElementById('fotoCalon').files[0]) debouncedUpdatePreview();
     });
     document.getElementById('wakilCalon').addEventListener('input', () => {
-        if (document.getElementById('fotoCalon').files[0]) updatePreview();
+        if (document.getElementById('fotoCalon').files[0]) debouncedUpdatePreview();
     });
 
     // Upload saat klik tombol Simpan
@@ -591,12 +615,14 @@
     document.getElementById('clearFotoCalon').addEventListener('click', () => {
         const input = document.getElementById('fotoCalon');
         input.value = ''; // reset file
+        cleanupObjectUrls();
         updatePreview(); // update canvas
     });
 
     document.getElementById('clearFotoWakil').addEventListener('click', () => {
         const input = document.getElementById('fotoWakil');
         input.value = ''; // reset file
+        cleanupObjectUrls();
         updatePreview(); // update canvas
     });
 
@@ -605,6 +631,11 @@
         if (e.target.closest('.btnEditCalon')) {
             const btn = e.target.closest('.btnEditCalon');
             const id = btn.dataset.id;
+
+            // Reset canvas dan bersihkan URL object lama
+            cleanupObjectUrls();
+            canvas.style.display = 'none';
+            compressedBlob = null;
 
             fetch(`<?= base_url('admin/calon/get/') ?>${id}`)
                 .then(res => res.json())
@@ -617,6 +648,10 @@
                         document.querySelector('textarea[name="visi"]').value = data.visi || '';
                         document.querySelector('textarea[name="misi"]').value = data.misi || '';
                         document.querySelector('select[name="kategori_id"]').value = data.kategori_id;
+
+                        // Reset file input agar tidak memicu canvas render
+                        document.getElementById('fotoCalon').value = '';
+                        document.getElementById('fotoWakil').value = '';
 
                         document.querySelector('.modal-title').textContent = 'Edit Calon';
                         document.getElementById('uploadBtn').textContent = 'Simpan Perubahan';
@@ -683,7 +718,18 @@
     });
 </script>
 <script>
+    // Bersihkan sumber daya saat modal ditutup
     document.addEventListener('DOMContentLoaded', () => {
+        const modalTambah = document.getElementById('modalTambah');
+        if (modalTambah) {
+            modalTambah.addEventListener('hidden.bs.modal', function() {
+                // Bersihkan canvas dan object URLs saat modal ditutup
+                cleanupObjectUrls();
+                compressedBlob = null;
+                canvas.style.display = 'none';
+            });
+        }
+
         const alertBox = document.getElementById('flashdataAlert');
         if (alertBox) {
             const timeout = alertBox.classList.contains('alert-success') ? 4000 : 6000;

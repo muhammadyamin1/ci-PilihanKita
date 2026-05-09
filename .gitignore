@@ -1,3 +1,7 @@
+#Ignore Cahce files
+writable/cache/*
+!writable/cache/.gitkeep
+
 # Ignore debugbar files
 writable/debugbar/*
 !writable/debugbar/.gitkeep
@@ -14,3 +18,5 @@ writable/session/*
 writable/uploads/*
 !writable/uploads/calon/
 !writable/uploads/calon/.gitkeep
+writable/uploads/user/
+!writable/uploads/user/.gitkeep

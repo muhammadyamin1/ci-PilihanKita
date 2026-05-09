@@ -267,7 +267,7 @@ class Auth extends BaseController
 
         if (empty($user['email'])) {
             return redirect()->back()
-                ->with('error', 'Email belum terdaftar. Silakan hubungi admin untuk menambahkan email Anda.');
+                ->with('error', 'Email belum terdaftar. Silakan hubungi admin untuk menambahkan email Anda atau Reset Password melalui admin.');
         }
 
         // Generate kode verifikasi 6 digit
