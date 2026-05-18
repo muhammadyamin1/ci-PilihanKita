@@ -129,7 +129,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `kategori_id`, `generated`, `sudah_memilih`, `created_at`, `foto`, `verification_code`, `verification_expires`) VALUES
-(1, NULL, 'yamin123', '$2y$10$VGGoOG9gOPJWbG9mDzCTbex0wn1Brvup2c53/Yo2tTsJFf.zksfYy', 'Muhammad Yamin', 'muhammadyamin1081@gmail.com', 'admin', NULL, 0, 0, '2025-10-16 10:28:48', '', NULL, NULL);
+(1, NULL, 'admin234', '$2y$10$VGGoOG9gOPJWbG9mDzCTbex0wn1Brvup2c53/Yo2tTsJFf.zksfYy', 'Admin', NULL, 'admin', NULL, 0, 0, '2025-10-16 10:28:48', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 

@@ -29,13 +29,17 @@
         <div class="card shadow-sm">
           <div class="card-body">
             <h6 class="mb-2 fw-bold">Suara Masuk</h6>
-            <div class="progress-bar bg-success"
-              role="progressbar"
-              style="width: <?= $partisipasi ?>%;"
-              aria-valuenow="<?= $partisipasi ?>"
-              aria-valuemin="0"
-              aria-valuemax="100">
-              <?= $partisipasi ?>%
+            <div class="progress" style="height: 20.5px;">
+              <div class="progress-bar bg-success 
+                <?= $partisipasi < 100 ? 'progress-bar-striped progress-bar-animated' : '' ?>"
+                role="progressbar"
+                style="width: <?= $partisipasi ?>%;"
+                aria-valuenow="<?= $partisipasi ?>"
+                aria-valuemin="0"
+                aria-valuemax="100">
+
+                <?= $partisipasi ?>%
+              </div>
             </div>
             <small class="text-muted d-block mt-2">
               <?= $suaraMasuk ?> dari <?= $totalPemilih ?> pemilih
@@ -130,7 +134,7 @@
           <div class="card-header bg-light">
             <h5 class="card-title mb-0">Jumlah Suara per Calon</h5>
           </div>
-          <div class="card-body">
+          <div class="card-body" style="height: 428px;">
             <canvas id="barChart"></canvas>
           </div>
         </div>
@@ -215,6 +219,7 @@
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true

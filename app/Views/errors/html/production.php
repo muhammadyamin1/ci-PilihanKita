@@ -1,23 +1,37 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
-
-    <title><?= lang('Errors.whoops') ?></title>
-
-    <style>
-        <?= preg_replace('#[\r\n\t ]+#', ' ', file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.css')) ?>
-    </style>
+    <title>Terjadi Kesalahan</title>
+    <link
+        rel="stylesheet"
+        href="<?= base_url('css/bootstrap-icons.min.css') ?>"
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="<?= base_url('assets/adminlte/css/adminlte.css') ?>" />
 </head>
-<body>
 
-    <div class="container text-center">
+<body class="bg-light">
 
-        <h1 class="headline"><?= lang('Errors.whoops') ?></h1>
+    <div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="text-center">
 
-        <p class="lead"><?= lang('Errors.weHitASnag') ?></p>
+            <div class="mb-4">
+                <h1 class="display-4 text-danger">Oops!</h1>
+                <h4>Terjadi Kesalahan Sistem</h4>
+            </div>
 
+            <p class="text-muted">
+                Sistem sedang mengalami gangguan. Silakan coba beberapa saat lagi.
+            </p>
+
+            <a href="<?= base_url() ?>" class="btn btn-primary mt-3">
+                <i class="bi bi-house-door-fill me-1"></i>
+                Kembali ke Beranda
+            </a>
+
+        </div>
     </div>
 
 </body>
