@@ -1,4 +1,4 @@
-﻿# PilihanKita
+﻿# Pilihan Kita
 
 Aplikasi voting sederhana berbasis CodeIgniter 4 untuk pemilihan ketua kelas, OSIS, atau BEM.
 
