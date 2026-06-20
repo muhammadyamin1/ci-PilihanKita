@@ -1,60 +1,128 @@
-# CodeIgniter 4 Framework
+﻿# PilihanKita
 
-## What is CodeIgniter?
+Aplikasi voting sederhana berbasis CodeIgniter 4 untuk pemilihan ketua kelas, OSIS, atau BEM.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+Proyek ini dibuat untuk kebutuhan voting/election yang mendukung:
+- Manajemen admin dan pemilih
+- Pengaturan kategori pemilihan
+- CRUD calon dengan unggah foto
+- Import/generate pemilih otomatis
+- Proses voting oleh pemilih terdaftar
+- Kontrol akses berbasis peran (admin/user)
 
-This repository holds the distributable version of the framework.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+---
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+## Fitur Utama
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+- halaman login dan logout
+- Admin dapat:
+  - membuat/hapus kategori pemilihan
+  - menambahkan, mengedit, dan menghapus calon
+  - mengelola pemilih, impor CSV, dan generate akun pemilih
+  - mengubah profil, email, dan foto profil
+  - membersihkan data atau menu maintenance khusus
+- User (pemilih) dapat:
+  - login dengan akun terdaftar
+  - melihat daftar calon sesuai kategori
+  - memilih satu calon
+  - mengubah password default saat pertama login
+- Upload foto calon disimpan di `writable/uploads/calon/`
+- Semua akses admin/user dilindungi menggunakan filter CodeIgniter
 
-## Important Change with index.php
+---
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+## Teknologi
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+- PHP 8.1+
+- CodeIgniter 4
+- MySQL
+- Composer
+- `public/` sebagai folder root web
 
-**Please** read the user guide for a better explanation of how CI4 works!
+---
 
-## Repository Management
+## Struktur Utama
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+- `app/Controllers/` - controller aplikasi
+- `app/Controllers/Admin/` - controller admin
+- `app/Models/` - model untuk `users`, `calon`, `kategori`, `pemilih`, `suara`
+- `app/Config/Routes.php` - routing utama aplikasi
+- `app/Views/` - tampilan frontend/backoffice
+- `public/` - titik masuk aplikasi
+- `writable/uploads/` - file upload dan export CSV
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+---
 
-## Contributing
+## Instalasi
 
-We welcome contributions from the community.
+1. Clone repository:
+   ```bash
+   git clone https://github.com/<username>/ci-PilihanKita.git
+   cd ci-PilihanKita
+   ```
+2. Install depedensi Composer:
+   ```bash
+   composer install
+   ```
+3. Konfigurasi database di `app/Config/Database.php` atau file `.env`:
+   - database: `pilihan_kita`
+   - user: `root` (sesuaikan dengan setup lokal Anda)
+4. Impor struktur database:
+   - gunakan file `pilihan_kita.sql`
+5. Jalankan server lokal:
+   ```bash
+   php spark serve
+   ```
+6. Akses aplikasi melalui browser:
+   ```text
+   http://localhost:8080
+   ```
 
-Please read the [*Contributing to CodeIgniter*](https://github.com/codeigniter4/CodeIgniter4/blob/develop/CONTRIBUTING.md) section in the development repository.
+> Pastikan web server Anda diarahkan ke folder `public/` agar struktur CodeIgniter berjalan dengan aman.
 
-## Server Requirements
+---
 
-PHP version 8.1 or higher is required, with the following extensions installed:
+## Routing Penting
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+- `/` → Landing page
+- `/login` → Form login
+- `/admin/dashboard` → Dashboard admin
+- `/admin/kategori` → Kelola kategori
+- `/admin/calon` → Kelola calon
+- `/admin/pemilih` → Kelola pemilih
+- `/user/pemilihan` → Halaman voting pemilih
+- `/auth/logout` → Logout
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
+---
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+## Setup Awal dan Penggunaan
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+1. Siapkan akun admin manual di tabel `users` jika belum ada.
+2. Login sebagai admin.
+3. Tambahkan kategori pemilihan.
+4. Tambahkan calon di kategori tersebut.
+5. Buat atau import pemilih, lalu arahkan pemilih untuk login.
+6. Pemilih dapat memilih calon dan melihat konfirmasi suara.
+
+---
+
+## Catatan Pengembangan
+
+- Password user disimpan dengan `password_hash()` dan diperiksa dengan `password_verify()`.
+- User yang di-generate otomatis diberi flag `generated = 1` dan wajib ubah password sebelum memilih.
+- Sistem voting hanya menerima 1 suara per user.
+- Foto calon dilayani melalui `UploadController::showCalon()`.
+
+---
+
+## File Tambahan
+
+- `pilihan_kita.sql` - dump database awal
+- `phpunit.xml.dist` - konfigurasi testing
+- `spark` - CLI CodeIgniter
+
+---
+
+## Lisensi
+
+Proyek ini menggunakan lisensi MIT.
