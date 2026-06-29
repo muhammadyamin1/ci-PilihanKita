@@ -36,7 +36,9 @@ class Auth extends BaseController
                 $session->set($sessionData);
 
                 // Arahkan sesuai role
-                if ($user['role'] === 'admin') {
+                if ($user['role'] === 'superadmin') {
+                    return redirect()->to('admin/admins');
+                } elseif ($user['role'] === 'admin') {
                     return redirect()->to('admin/dashboard');
                 } else {
                     return redirect()->to('user/pemilihan');

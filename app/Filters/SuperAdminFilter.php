@@ -6,7 +6,7 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Filters\FilterInterface;
 
-class AdminFilter implements FilterInterface
+class SuperAdminFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
@@ -14,10 +14,13 @@ class AdminFilter implements FilterInterface
             return redirect()->to('/login')->with('error', 'Anda belum login, silakan login terlebih dahulu!');
         }
 
-        if (!in_array(session()->get('role'), ['admin', 'superadmin'])) {
-            return redirect()->to('/login')->with('error', 'Anda bukan admin!');
+        if (session()->get('role') !== 'superadmin') {
+            return redirect()->to('/login')->with('error', 'Hanya Super Admin yang boleh ke halaman ini.');
         }
     }
 
-    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null) {}
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
+    {
+        // Nothing after
+    }
 }

@@ -56,8 +56,18 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     //Update email
     $routes->post('profile/update-email', 'Admin\Profile::updateEmail');
 
-    // Cleanup route
-    $routes->get('cleanup', 'Admin\Cleanup::index');
+    // Super Admin routes
+    $routes->get('admins', 'Admin\SuperAdmin::index', ['filter' => 'F_superadmin']);
+    $routes->get('admins/create', 'Admin\SuperAdmin::create', ['filter' => 'F_superadmin']);
+    $routes->post('admins/store', 'Admin\SuperAdmin::store', ['filter' => 'F_superadmin']);
+    $routes->get('admins/edit/(:num)', 'Admin\SuperAdmin::edit/$1', ['filter' => 'F_superadmin']);
+    $routes->post('admins/update/(:num)', 'Admin\SuperAdmin::update/$1', ['filter' => 'F_superadmin']);
+    $routes->get('admins/delete-confirm/(:num)', 'Admin\SuperAdmin::deleteConfirm/$1', ['filter' => 'F_superadmin']);
+    $routes->post('admins/delete/(:num)', 'Admin\SuperAdmin::delete/$1', ['filter' => 'F_superadmin']);
+
+    $routes->get('cleanup', 'Admin\Cleanup::index', ['filter' => 'F_superadmin']);
+    $routes->post('cleanup/delete', 'Admin\Cleanup::delete', ['filter' => 'F_superadmin']);
+    $routes->post('cleanup/delete-data', 'Admin\Cleanup::deleteData', ['filter' => 'F_superadmin']);
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');

@@ -114,7 +114,7 @@ CREATE TABLE `users` (
   `password` varchar(255) DEFAULT NULL,
   `nama` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
-  `role` enum('admin','user') DEFAULT 'user',
+  `role` enum('admin','user','superadmin') DEFAULT 'user',
   `kategori_id` int(11) DEFAULT NULL,
   `generated` tinyint(1) DEFAULT 0,
   `sudah_memilih` tinyint(1) DEFAULT 0,
@@ -129,7 +129,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `admin_id`, `username`, `password`, `nama`, `email`, `role`, `kategori_id`, `generated`, `sudah_memilih`, `created_at`, `foto`, `verification_code`, `verification_expires`) VALUES
-(1, NULL, 'admin234', '$2y$10$VGGoOG9gOPJWbG9mDzCTbex0wn1Brvup2c53/Yo2tTsJFf.zksfYy', 'Admin', NULL, 'admin', NULL, 0, 0, '2025-10-16 10:28:48', NULL, NULL, NULL);
+(1, NULL, 'admin123', '$2y$10$zKS.7s1dXCv6C/Y5ONxwwenP5bgFK9ZLqG9E9x7L4M7JHmswkg0Om', 'Admin', NULL, 'admin', NULL, 0, 0, '2025-10-16 10:28:48', NULL, NULL, NULL),
+(2, NULL, 'super123', '$2y$10$/tv59ZD092I.igfiyAq4Tu6WikiUOTe7mWdspUkV.21Sicj6JEHKe', 'Super Admin', NULL, 'superadmin', NULL, 0, 0, '2025-10-16 10:28:48', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 

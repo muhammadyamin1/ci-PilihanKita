@@ -149,14 +149,18 @@
                   <?php endif; ?>
                   <p>
                     <?= esc(session('nama')) ?>
-                    <small><?= session('role') === 'admin' ? 'Administrator' : 'Pemilih' ?></small>
+                    <small>
+                      <?= session('role') === 'superadmin'
+                        ? 'Super Administrator'
+                        : (session('role') === 'admin' ? 'Administrator' : 'Pemilih') ?>
+                    </small>
                   </p>
                 </li>
 
                 <!--end::User Image-->
                 <!--begin::Menu Footer-->
                 <li class="user-footer">
-                  <?php if (session('role') === 'admin'): ?>
+                  <?php if (session('role') === 'admin' || session('role') === 'superadmin'): ?>
                     <a href="<?= base_url('admin/profile') ?>" class="btn btn-default btn-flat">Profile</a>
                   <?php endif; ?>
                   <a href="<?= base_url('auth/logout') ?>" class="btn btn-default btn-flat float-end">Sign out</a>

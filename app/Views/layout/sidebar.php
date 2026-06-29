@@ -5,7 +5,7 @@
   <!--begin::Sidebar Brand-->
   <div class="sidebar-brand">
     <!--begin::Brand Link-->
-    <a href="<?= base_url($role === 'admin' ? 'admin/dashboard' : 'user/hasil') ?>" class="brand-link">
+    <a href="<?= base_url($role === 'admin' ? 'admin/dashboard' : ($role === 'superadmin' ? 'admin/admins' : 'user/hasil')) ?>" class="brand-link">
       <!--begin::Brand Image-->
       <div class="brand-image opacity-75 shadow">
         🗳
@@ -29,42 +29,60 @@
         aria-label="Main navigation"
         data-accordion="false"
         id="navigation">
-        <?php if ($role === 'admin'): ?>
+        <?php if ($role === 'admin' || $role === 'superadmin'): ?>
           <li class="nav-item">
-            <a href="<?= base_url('admin/dashboard') ?>" class="nav-link">
+            <a href="<?= base_url($role === 'admin' ? 'admin/dashboard' : 'admin/admins') ?>" class="nav-link">
               <i class="nav-icon bi bi-speedometer"></i>
-              <p>Dashboard</p>
+              <p><?= $role === 'admin' ? 'Dashboard' : 'Manajemen Admin' ?></p>
             </a>
           </li>
-          <li class="nav-item">
-            <a href="<?= base_url('admin/kategori') ?>" class="nav-link">
-              <i class="nav-icon bi bi-list-check"></i>
-              <p>Kategori Pemilihan</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="nav-icon bi bi-gear-fill"></i>
-              <p>
-                Manajemen
-                <i class="nav-arrow bi bi-chevron-right"></i>
-              </p>
-            </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="<?= base_url('admin/calon') ?>" class="nav-link">
-                  <i class="nav-icon bi bi-person-badge"></i>
-                  <p>Calon</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="<?= base_url('admin/pemilih') ?>" class="nav-link">
-                  <i class="nav-icon bi bi-people-fill"></i>
-                  <p>Pemilih</p>
-                </a>
-              </li>
-            </ul>
-          </li>
+
+          <?php if ($role === 'admin'): ?>
+            <li class="nav-item">
+              <a href="<?= base_url('admin/kategori') ?>" class="nav-link">
+                <i class="nav-icon bi bi-list-check"></i>
+                <p>Kategori Pemilihan</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-gear-fill"></i>
+                <p>
+                  Manajemen
+                  <i class="nav-arrow bi bi-chevron-right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="<?= base_url('admin/calon') ?>" class="nav-link">
+                    <i class="nav-icon bi bi-person-badge"></i>
+                    <p>Calon</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="<?= base_url('admin/pemilih') ?>" class="nav-link">
+                    <i class="nav-icon bi bi-people-fill"></i>
+                    <p>Pemilih</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          <?php endif; ?>
+
+          <?php if ($role === 'superadmin'): ?>
+            <li class="nav-item">
+              <a href="<?= base_url('admin/admins') ?>" class="nav-link">
+                <i class="nav-icon bi bi-people"></i>
+                <p>Daftar Admin</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= base_url('admin/cleanup') ?>" class="nav-link">
+                <i class="nav-icon bi bi-trash2"></i>
+                <p>Cleanup Data</p>
+              </a>
+            </li>
+          <?php endif; ?>
         <?php else: ?>
           <li class="nav-item">
             <a href="<?= base_url('user/hasil') ?>" class="nav-link">

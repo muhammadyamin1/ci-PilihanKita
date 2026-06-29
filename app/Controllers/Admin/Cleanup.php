@@ -5,91 +5,220 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\UserModel;
 use App\Models\CalonModel;
+use App\Models\KategoriModel;
+use App\Models\SuaraModel;
+use CodeIgniter\Database\ConnectionInterface;
 
 class Cleanup extends BaseController
 {
-    /**
-     * Skrip Pembersihan File Sampah (Orphaned Files)
-     * Menghapus file di folder uploads yang datanya sudah tidak ada di database.
-     */
-    public function index()
+    protected $db;
+
+    public function __construct()
     {
-        $results = [];
-
-        // 1. Bersihkan Foto User
-        $results['user'] = $this->cleanupFolder(
-            WRITEPATH . 'uploads/user/',
-            new UserModel(),
-            'foto'
-        );
-
-        // 2. Bersihkan Foto Calon
-        $results['calon'] = $this->cleanupFolder(
-            WRITEPATH . 'uploads/calon/',
-            new CalonModel(),
-            'foto'
-        );
-
-        return $this->renderResult($results);
+        $this->db = \Config\Database::connect();
     }
 
-    /**
-     * Logika pembersihan folder berdasarkan model
-     */
-    private function cleanupFolder($path, $model, $column)
+    public function index()
     {
+        $preview = [
+            'user' => $this->getOrphanFiles(WRITEPATH . 'uploads/user/', new UserModel(), 'foto'),
+            'calon' => $this->getOrphanFiles(WRITEPATH . 'uploads/calon/', new CalonModel(), 'foto'),
+        ];
+
+        $counts = [
+            'suara' => $this->db->table('suara')->countAllResults(),
+            'users' => (new UserModel())->where('role', 'user')->countAllResults(),
+            'calon' => (new CalonModel())->countAllResults(),
+            'kategori' => (new KategoriModel())->countAllResults(),
+            'admins' => (new UserModel())->where('role', 'admin')->countAllResults(),
+        ];
+
+        return view('admin/cleanup', [
+            'preview' => $preview,
+            'counts' => $counts,
+        ]);
+    }
+
+    public function delete()
+    {
+        $orphanUsers = $this->getOrphanFiles(WRITEPATH . 'uploads/user/', new UserModel(), 'foto');
+        $orphanCalons = $this->getOrphanFiles(WRITEPATH . 'uploads/calon/', new CalonModel(), 'foto');
+
+        $result = [
+            'user' => $this->removeOrphanFiles(WRITEPATH . 'uploads/user/', $orphanUsers['files']),
+            'calon' => $this->removeOrphanFiles(WRITEPATH . 'uploads/calon/', $orphanCalons['files']),
+        ];
+
+        return redirect()->to('/admin/cleanup')->with('success', 'Hapus file orphan selesai.')->with('cleanup_result', $result);
+    }
+
+    public function deleteData()
+    {
+        $action = $this->request->getPost('action');
+        $confirmation = trim($this->request->getPost('confirm_delete'));
+
+        if (empty($action) || empty($confirmation)) {
+            return redirect()->back()->with('error', 'Aksi atau konfirmasi tidak boleh kosong.');
+        }
+
+        $validations = [
+            'delete_votes' => 'HAPUS',
+            'delete_users' => 'HAPUS',
+            'delete_calon' => 'HAPUS',
+            'delete_categories' => 'HAPUS',
+            'delete_admins' => 'HAPUS',
+            'delete_all' => 'HAPUS SEMUA',
+        ];
+
+        if (!isset($validations[$action])) {
+            return redirect()->back()->with('error', 'Aksi tidak dikenal.');
+        }
+
+        if ($confirmation !== $validations[$action]) {
+            return redirect()->back()->with('error', 'Konfirmasi tidak valid.');
+        }
+
+        $progress = [];
+
+        try {
+            $this->db->transStart();
+
+            switch ($action) {
+                case 'delete_votes':
+                    $this->db->table('suara')->delete([]);
+                    $progress[] = 'Semua suara berhasil dihapus.';
+                    break;
+
+                case 'delete_users':
+                    (new UserModel())->where('role', 'user')->delete();
+                    $progress[] = 'Semua pemilih berhasil dihapus.';
+                    break;
+
+                case 'delete_calon':
+                    $this->deleteAllCalon();
+                    $progress[] = 'Semua calon berhasil dihapus.';
+                    break;
+
+                case 'delete_categories':
+                    $remainingCalon = (new CalonModel())->countAllResults();
+                    if ($remainingCalon > 0) {
+                        return redirect()->back()->with('error', 'Masih ada calon yang terkait dengan kategori. Hapus calon terlebih dahulu.');
+                    }
+                    (new KategoriModel())->delete([]);
+                    $progress[] = 'Semua kategori berhasil dihapus.';
+                    break;
+
+                case 'delete_admins':
+                    $superadminId = session()->get('id');
+                    (new UserModel())
+                        ->where('role', 'admin')
+                        ->where('id !=', $superadminId)
+                        ->delete();
+                    $progress[] = 'Semua admin (selain Super Admin) berhasil dihapus.';
+                    break;
+
+                case 'delete_all':
+                    $this->db->table('suara')->delete([]);
+                    $progress[] = 'Semua suara dihapus.';
+
+                    (new UserModel())->where('role', 'user')->delete();
+                    $progress[] = 'Semua pemilih dihapus.';
+
+                    $this->deleteAllCalon();
+                    $progress[] = 'Semua calon dihapus.';
+
+                    (new KategoriModel())->delete([]);
+                    $progress[] = 'Semua kategori dihapus.';
+
+                    $superadminId = session()->get('id');
+                    (new UserModel())
+                        ->where('role', 'admin')
+                        ->where('id !=', $superadminId)
+                        ->delete();
+                    $progress[] = 'Semua admin selain Super Admin dihapus.';
+                    break;
+            }
+
+            $this->db->transComplete();
+
+            if ($this->db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal.');
+            }
+
+            return redirect()->to('/admin/cleanup')->with('success', 'Aksi berhasil dijalankan.')->with('cleanup_progress', $progress);
+        } catch (\Exception $e) {
+            $this->db->transRollback();
+            log_message('error', 'Cleanup deleteData error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menjalankan aksi. ' . $e->getMessage());
+        }
+    }
+
+    private function getOrphanFiles($path, $model, $column)
+    {
+        $result = ['files' => []];
+
         if (!is_dir($path)) {
-            return ['status' => 'error', 'message' => "Direktori $path tidak ditemukan."];
+            return $result;
         }
 
         $files = array_diff(scandir($path), ['.', '..', '.gitkeep', 'index.html']);
-        $deletedCount = 0;
-        $deletedFiles = [];
-        $keptCount = 0;
+        $dbValues = $model->select($column)->findAll();
+
+        $dbBasenames = [];
+        foreach ($dbValues as $row) {
+            $value = $row[$column] ?? '';
+            if ($value !== '') {
+                $dbBasenames[basename($value)] = true;
+            }
+        }
 
         foreach ($files as $file) {
-            // Cek apakah nama file ada di database
-            $exists = $model->where($column, $file)->first();
+            if (!isset($dbBasenames[$file])) {
+                $result['files'][] = $file;
+            }
+        }
 
-            if (!$exists) {
-                if (unlink($path . $file)) {
-                    $deletedCount++;
-                    $deletedFiles[] = $file;
-                }
-            } else {
-                $keptCount++;
+        return $result;
+    }
+
+    private function removeOrphanFiles($path, array $files)
+    {
+        $deletedFiles = [];
+        $deletedCount = 0;
+        $errors = [];
+
+        foreach ($files as $file) {
+            $fullPath = $path . $file;
+            if (file_exists($fullPath) && is_file($fullPath) && unlink($fullPath)) {
+                $deletedFiles[] = $file;
+                $deletedCount++;
+            } elseif (file_exists($fullPath) && !is_file($fullPath)) {
+                $errors[] = "File tidak valid: $file";
             }
         }
 
         return [
-            'status' => 'success',
-            'total_files_scanned' => count($files),
+            'status' => empty($errors) ? 'success' : 'error',
             'deleted_count' => $deletedCount,
-            'kept_count' => $keptCount,
-            'deleted_files' => $deletedFiles
+            'deleted_files' => $deletedFiles,
+            'errors' => $errors,
         ];
     }
 
-    private function renderResult($results)
+    private function deleteAllCalon()
     {
-        echo "<h1>Cleanup Report</h1>";
-        foreach ($results as $type => $res) {
-            echo "<h3>Type: " . ucfirst($type) . "</h3>";
-            if ($res['status'] === 'error') {
-                echo "<p style='color:red'>" . $res['message'] . "</p>";
-            } else {
-                echo "<ul>";
-                echo "<li>Total file dipindai: " . $res['total_files_scanned'] . "</li>";
-                echo "<li>File dihapus (tidak ada di DB): " . $res['deleted_count'] . "</li>";
-                echo "<li>File dipertahankan: " . $res['kept_count'] . "</li>";
-                echo "</ul>";
-                
-                if (!empty($res['deleted_files'])) {
-                    echo "<p>File yang dihapus: <code>" . implode(', ', $res['deleted_files']) . "</code></p>";
+        $calonModel = new CalonModel();
+        $calons = $calonModel->findAll();
+
+        foreach ($calons as $calon) {
+            if (!empty($calon['foto'])) {
+                $path = WRITEPATH . $calon['foto'];
+                if (file_exists($path) && is_file($path)) {
+                    @unlink($path);
                 }
             }
-            echo "<hr>";
         }
-        echo "<p>Pembersihan selesai.</p>";
+
+        $calonModel->delete([]);
     }
 }
