@@ -88,10 +88,80 @@ class Auth extends BaseController
         $data = [
             'calons'       => $calons,
             'sudahMemilih' => $sudahMemilih,
-            'kategori_nama' => ''   // kita kosongkan dulu, atau ambil manual
+            'kategori_nama' => '',   // kita kosongkan dulu, atau ambil manual
+            'showSidebar'  => $sudahMemilih
         ];
 
         return view('user/pemilihan', $data);
+    }
+
+    public function hasil()
+    {
+        if (!session()->get('logged_in') || session('role') !== 'user') {
+            return redirect()->to('/login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $userId     = session('id');
+        $adminId    = session('admin_id');
+        $kategoriId = session('kategori_id');
+
+        if (empty($kategoriId)) {
+            return redirect()->to('/login')->with('error', 'Kategori pemilihan belum ditentukan untuk akun Anda.');
+        }
+
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($userId);
+
+        if ($user && $user['generated'] == 1) {
+            return redirect()->to('/user/ubah-password')->with('warning', 'Anda harus mengubah password default terlebih dahulu sebelum melihat hasil.');
+        }
+
+        $suaraModel = new \App\Models\SuaraModel();
+        $sudahMemilih = $suaraModel->where('user_id', $userId)->first() !== null;
+
+        if (!$sudahMemilih) {
+            return redirect()->to('/user/pemilihan')->with('warning', 'Silakan memilih terlebih dahulu untuk melihat hasil suara.');
+        }
+
+        $kategoriModel = new \App\Models\KategoriModel();
+        $calonModel    = new \App\Models\CalonModel();
+        $pemilihModel  = new \App\Models\PemilihModel();
+
+        $kategori = $kategoriModel
+            ->where('id', $kategoriId)
+            ->where('admin_id', $adminId)
+            ->first();
+
+        $hasil = $calonModel
+            ->select('calon.id, calon.nama_calon, calon.wakil_calon, COUNT(suara.id) as total_suara')
+            ->join('suara', 'suara.calon_id = calon.id', 'left')
+            ->where('calon.kategori_id', $kategoriId)
+            ->where('calon.admin_id', $adminId)
+            ->groupBy('calon.id')
+            ->findAll();
+
+        $suaraMasuk = $suaraModel
+            ->join('calon', 'calon.id = suara.calon_id')
+            ->where('calon.kategori_id', $kategoriId)
+            ->where('calon.admin_id', $adminId)
+            ->countAllResults();
+
+        $totalPemilih = $pemilihModel
+            ->where('role', 'user')
+            ->where('admin_id', $adminId)
+            ->where('kategori_id', $kategoriId)
+            ->countAllResults();
+
+        $partisipasi = $totalPemilih > 0 ? round(($suaraMasuk / $totalPemilih) * 100, 1) : 0;
+
+        return view('user/hasil', [
+            'kategori'     => $kategori,
+            'hasil'        => $hasil,
+            'suaraMasuk'   => $suaraMasuk,
+            'totalPemilih' => $totalPemilih,
+            'partisipasi'  => $partisipasi,
+            'showSidebar'  => true
+        ]);
     }
 
     /**
@@ -199,7 +269,7 @@ class Auth extends BaseController
             return redirect()->to('user/pemilihan');
         }
 
-        return view('user/ubah_password');
+        return view('user/ubah_password', ['showSidebar' => false]);
     }
 
     /**

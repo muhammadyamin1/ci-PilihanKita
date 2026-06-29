@@ -1,3 +1,4 @@
+<?php $showSidebar = $showSidebar ?? true; ?>
 <!doctype html>
 <html lang="en">
   <!--begin::Head-->
@@ -57,8 +58,18 @@
 
     <!-- CSRF Token untuk AJAX request -->
     <meta name="csrf-token" content="<?= csrf_hash() ?>">
+    <?php if (!$showSidebar): ?>
+      <style>
+        .app-header,
+        .app-main,
+        .app-footer {
+          margin-left: 0 !important;
+          margin-inline-start: 0 !important;
+        }
+      </style>
+    <?php endif; ?>
   </head>
-  <body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
+  <body class="layout-fixed <?= $showSidebar ? 'sidebar-expand-lg sidebar-open' : 'layout-navbar-fixed' ?> bg-body-tertiary">
     <!--begin::App Wrapper-->
     <div class="app-wrapper">
       <!--begin::Header-->
@@ -67,11 +78,13 @@
         <div class="container-fluid">
           <!--begin::Start Navbar Links-->
           <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
-                <i class="bi bi-list"></i>
-              </a>
-            </li>
+            <?php if ($showSidebar): ?>
+              <li class="nav-item">
+                <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+                  <i class="bi bi-list"></i>
+                </a>
+              </li>
+            <?php endif; ?>
           </ul>
           <!--end::Start Navbar Links-->
           <!--begin::End Navbar Links-->
@@ -136,14 +149,16 @@
                   <?php endif; ?>
                   <p>
                     <?= esc(session('nama')) ?>
-                    <small>Administrator</small>
+                    <small><?= session('role') === 'admin' ? 'Administrator' : 'Pemilih' ?></small>
                   </p>
                 </li>
 
                 <!--end::User Image-->
                 <!--begin::Menu Footer-->
                 <li class="user-footer">
-                  <a href="<?= base_url('admin/profile') ?>" class="btn btn-default btn-flat">Profile</a>
+                  <?php if (session('role') === 'admin'): ?>
+                    <a href="<?= base_url('admin/profile') ?>" class="btn btn-default btn-flat">Profile</a>
+                  <?php endif; ?>
                   <a href="<?= base_url('auth/logout') ?>" class="btn btn-default btn-flat float-end">Sign out</a>
                 </li>
                 <!--end::Menu Footer-->

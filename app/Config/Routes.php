@@ -61,6 +61,7 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');
     $routes->post('vote', 'Auth::vote');
+    $routes->get('hasil', 'Auth::hasil');
     $routes->get('ubah-password', 'Auth::ubahPassword');
     $routes->post('ubah-password', 'Auth::processUbahPassword');
 });

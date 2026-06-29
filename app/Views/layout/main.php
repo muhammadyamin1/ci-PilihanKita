@@ -1,5 +1,11 @@
+<?php
+$showSidebar = $showSidebar ?? true;
+?>
+
 <?= $this->include('layout/header'); ?>
-<?= $this->include('layout/sidebar'); ?>
+<?php if ($showSidebar): ?>
+  <?= $this->include('layout/sidebar'); ?>
+<?php endif; ?>
 
 <main class="app-main">
   <?= $this->renderSection('content'); ?>

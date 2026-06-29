@@ -2,6 +2,41 @@
 <?= $this->section('content'); ?>
 
 <div class="container-fluid">
+    <style>
+        .password-input-group {
+            flex-wrap: wrap;
+        }
+
+        .password-input-group > .password-control {
+            order: 1;
+            flex: 1 1 auto;
+            width: 1%;
+            min-width: 0;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .password-input-group > #togglePassword {
+            order: 1;
+            flex: 0 0 auto;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .password-input-group > .invalid-feedback {
+            order: 2;
+            flex: 0 0 100%;
+            width: 100%;
+        }
+
+        .password-input-group .password-control,
+        .password-input-group .password-control.is-invalid,
+        .was-validated .password-input-group .password-control:invalid {
+            padding-right: .75rem !important;
+            background-image: none !important;
+        }
+    </style>
+
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm mt-1">
@@ -39,6 +74,7 @@
                     </script>
 
                     <form action="<?= base_url('admin/pemilih/simpan') ?>" method="post">
+                        <?= csrf_field() ?>
 
 
                         <div class="mb-3">
@@ -60,9 +96,9 @@
 
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <div class="input-group">
-                                <input type="password" name="password" id="passwordInput" class="form-control" required minlength="8" maxlength="50" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$" title="Minimal 8 karakter, huruf dan angka" autocomplete="off" placeholder="Minimal 8 karakter, huruf & angka">
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" title="Lihat/Sembunyikan Password">
+                            <div class="input-group password-input-group">
+                                <input type="password" name="password" id="passwordInput" class="form-control password-control" required minlength="8" maxlength="50" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$" title="Minimal 8 karakter, huruf dan angka" autocomplete="off" placeholder="Minimal 8 karakter, huruf & angka">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" title="Lihat/Sembunyikan Password" aria-label="Lihat atau sembunyikan password">
                                     <i class="bi bi-eye" id="eyeIcon"></i>
                                 </button>
                             </div>

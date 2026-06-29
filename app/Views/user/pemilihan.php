@@ -8,6 +8,14 @@
             <p class="lead text-muted">Pilih calon terbaik untuk masa depan kita</p>
         </div>
 
+        <?php if (session()->getFlashdata('warning')): ?>
+            <div class="alert alert-warning text-center"><?= session()->getFlashdata('warning') ?></div>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="alert alert-success text-center"><?= session()->getFlashdata('success') ?></div>
+        <?php endif; ?>
+
         <?php if ($sudahMemilih): ?>
             <div class="alert alert-success text-center py-4 fs-4">
                 <i class="bi bi-check-circle-fill me-3"></i>
