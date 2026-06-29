@@ -132,6 +132,24 @@ class Pemilih extends BaseController
         return redirect()->to('/admin/pemilih')->with('success', 'User berhasil ditambahkan.');
     }
 
+    public function hapusForm($id)
+    {
+        $userModel = new \App\Models\UserModel();
+
+        $user = $userModel
+            ->where('id', $id)
+            ->where('admin_id', session()->get('id'))
+            ->first();
+
+        if (!$user) {
+            return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
+        }
+
+        return view('admin/pemilih/hapus', [
+            'user' => $user
+        ]);
+    }
+
     public function hapus($id)
     {
         $userModel = new \App\Models\UserModel();
@@ -142,10 +160,32 @@ class Pemilih extends BaseController
             ->first();
 
         if (!$user) {
-            return redirect()->back()->with('error', 'User tidak ditemukan.');
+            return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
+        }
+
+        $confirmation = $this->request->getPost('confirm_delete');
+        if (trim($confirmation) !== 'HAPUS') {
+            return redirect()->back()->with('error', 'Konfirmasi tidak valid. Ketik HAPUS untuk melanjutkan.');
         }
 
         $userModel->delete($id);
+
+        $logModel = new \App\Models\AdminActivityLogModel();
+        $logModel->logActivity(
+            session()->get('id'),
+            'delete',
+            'pemilih',
+            $id,
+            'Menghapus pemilih: ' . $user['username'],
+            [
+                'username' => $user['username'],
+                'nama' => $user['nama'],
+                'email' => $user['email'],
+                'kategori_id' => $user['kategori_id'],
+                'sudah_memilih' => $user['sudah_memilih']
+            ],
+            null
+        );
 
         return redirect()->to('/admin/pemilih')->with('success', 'User berhasil dihapus.');
     }
@@ -726,6 +766,10 @@ class Pemilih extends BaseController
             return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
         }
 
+        if ($user['sudah_memilih']) {
+            return redirect()->to('/admin/pemilih')->with('error', 'Pemilih yang sudah memilih tidak dapat diedit.');
+        }
+
         $kategori = $kategoriModel
             ->where('admin_id', session()->get('id'))
             ->findAll();
@@ -751,6 +795,10 @@ class Pemilih extends BaseController
 
         if (!$user) {
             return redirect()->to('/admin/pemilih')->with('error', 'User tidak ditemukan.');
+        }
+
+        if ($user['sudah_memilih']) {
+            return redirect()->to('/admin/pemilih')->with('error', 'Pemilih yang sudah memilih tidak dapat diedit.');
         }
 
         $kategori_id = $this->request->getPost('kategori_id');
@@ -861,7 +909,8 @@ class Pemilih extends BaseController
         ];
 
         $userModel->update($id, [
-            'password' => password_hash($newPassword, PASSWORD_DEFAULT)
+            'password'  => password_hash($newPassword, PASSWORD_DEFAULT),
+            'generated' => 1
         ]);
 
         // Log aktivitas dengan alasan

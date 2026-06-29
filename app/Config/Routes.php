@@ -35,6 +35,7 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->post('pemilih/update/(:num)', 'Admin\Pemilih::update/$1');
     $routes->get('pemilih/reset-form/(:num)', 'Admin\Pemilih::resetForm/$1');
     $routes->post('pemilih/reset/(:num)', 'Admin\Pemilih::reset/$1');
+    $routes->get('pemilih/hapus-form/(:num)', 'Admin\Pemilih::hapusForm/$1');
     $routes->post('pemilih/hapus/(:num)', 'Admin\Pemilih::hapus/$1');
     $routes->match(['get', 'post'], 'pemilih/generate', 'Admin\Pemilih::generate');
     $routes->post('pemilih/update-nama/(:num)', 'Admin\Pemilih::updateNama/$1');

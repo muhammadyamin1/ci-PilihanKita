@@ -148,27 +148,39 @@
 
                                     <td class="text-center" width="10%">
                                         <div class="btn-group" role="group">
-                                            <a href="<?= base_url('admin/pemilih/edit/' . $u['id']) ?>"
-                                                class="btn btn-sm btn-outline-info"
-                                                data-bs-toggle="tooltip"
-                                                title="Edit Data Pemilih">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
+                                            <?php if ($u['sudah_memilih']) : ?>
+                                                <span class="d-inline-block" tabindex="0"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="Tidak dapat diedit setelah memilih">
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-outline-info"
+                                                        disabled>
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </span>
+                                            <?php else : ?>
+                                                <a href="<?= base_url('admin/pemilih/edit/' . $u['id']) ?>"
+                                                    class="btn btn-sm btn-outline-info"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Edit Data Pemilih">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            <?php endif; ?>
+
                                             <a href="<?= base_url('admin/pemilih/reset-form/' . $u['id']) ?>"
                                                 class="btn btn-sm btn-outline-secondary"
                                                 data-bs-toggle="tooltip"
                                                 title="Reset Password">
                                                 <i class="bi bi-arrow-clockwise"></i>
                                             </a>
-                                            <form action="<?= base_url('admin/pemilih/hapus/' . $u['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus user ini?')">
-                                                <?= csrf_field() ?>
-                                                <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    data-bs-toggle="tooltip"
-                                                    title="Hapus Pemilih">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
+
+                                            <a href="<?= base_url('admin/pemilih/hapus-form/' . $u['id']) ?>"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="tooltip"
+                                                title="Hapus Pemilih">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

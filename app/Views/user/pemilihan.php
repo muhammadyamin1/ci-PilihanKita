@@ -43,8 +43,10 @@
 
                             <!-- Hover Overlay -->
                             <div class="hover-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                                <button onclick="pilihCalon(<?= $calon['id'] ?>, '<?= esc($calon['nama_calon']) ?><?= !empty($calon['wakil_calon']) ? ' & ' . esc($calon['wakil_calon']) : '' ?>')"
-                                    class="btn btn-success btn-lg px-5 py-3 rounded-pill shadow"
+                                <button type="button"
+                                    class="btn btn-success btn-lg px-5 py-3 rounded-pill shadow pilih-calon-btn"
+                                    data-calon-id="<?= (int) $calon['id'] ?>"
+                                    data-calon-name="<?= esc($calon['nama_calon'] . (!empty($calon['wakil_calon']) ? ' & ' . $calon['wakil_calon'] : ''), 'attr') ?>"
                                     <?= $sudahMemilih ? 'disabled' : '' ?>>
                                     <i class="bi bi-hand-thumbs-up-fill me-2"></i> PILIH CALON INI
                                 </button>
@@ -159,48 +161,71 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-    let selectedCalonId = null;
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedCalonId = null;
+        let hasVoted = false;
+        const confirmModalEl = document.getElementById('confirmModal');
+        const confirmModal = bootstrap.Modal.getOrCreateInstance(confirmModalEl);
+        const voteButtons = document.querySelectorAll('.pilih-calon-btn');
 
-    function pilihCalon(id, namaLengkap) {
-        selectedCalonId = id;
-        document.getElementById('calonName').textContent = namaLengkap;
-        new bootstrap.Modal(document.getElementById('confirmModal')).show();
-    }
-
-    document.getElementById('confirmVoteBtn').addEventListener('click', function() {
-        if (!selectedCalonId) return;
-
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
-
-        fetch('<?= base_url('user/vote') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: 'calon_id=' + selectedCalonId + '&<?= csrf_token() ?>=<?= csrf_hash() ?>'
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    confetti({
-                        particleCount: 300,
-                        spread: 80,
-                        origin: {
-                            y: 0.6
-                        }
-                    });
-                    setTimeout(() => location.reload(), 1800);
-                } else {
-                    alert(data.message || 'Gagal memilih');
-                }
-            })
-            .catch(() => alert('Terjadi kesalahan'))
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = 'Ya, Pilih';
+        function disableVoteButtons() {
+            voteButtons.forEach(function(button) {
+                button.disabled = true;
             });
+        }
+
+        voteButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                if (hasVoted || this.disabled) return;
+
+                selectedCalonId = this.getAttribute('data-calon-id');
+                const calonName = this.getAttribute('data-calon-name') || '';
+                document.getElementById('calonName').textContent = calonName.replace(/\\x20/g, ' ');
+                confirmModal.show();
+            });
+        });
+
+        document.getElementById('confirmVoteBtn').addEventListener('click', function() {
+            if (!selectedCalonId) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+
+            fetch('<?= base_url('user/vote') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'calon_id=' + selectedCalonId + '&<?= csrf_token() ?>=<?= csrf_hash() ?>'
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        hasVoted = true;
+                        disableVoteButtons();
+                        confirmModal.hide();
+
+                        setTimeout(() => {
+                            confetti({
+                                particleCount: 300,
+                                spread: 80,
+                                origin: {
+                                    y: 0.6
+                                }
+                            });
+                            setTimeout(() => location.reload(), 1800);
+                        }, 350);
+                    } else {
+                        alert(data.message || 'Gagal memilih');
+                    }
+                })
+                .catch(() => alert('Terjadi kesalahan'))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Ya, Pilih';
+                });
+        });
     });
 </script>
 

@@ -190,7 +190,23 @@ class Auth extends BaseController
         }
 
         $calonModel = new \App\Models\CalonModel();
-        $suaraModel = new \App\Models\SuaraModel();   // Pastikan model ini sudah ada
+        $suaraModel = new \App\Models\SuaraModel();
+        $userModel  = new \App\Models\UserModel();
+
+        $user = $userModel->find($userId);
+        if (!$user) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Data pengguna tidak ditemukan.'
+            ]);
+        }
+
+        if ((int) $user['sudah_memilih'] === 1) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Anda sudah memberikan suara.'
+            ]);
+        }
 
         // Cek apakah calon valid dan sesuai kategori + admin
         $calon = $calonModel
@@ -220,15 +236,30 @@ class Auth extends BaseController
 
         // Simpan suara
         try {
+            $db = db_connect();
+            $db->transStart();
+
+            $existingVote = $suaraModel->where('user_id', $userId)->first();
+            if ($existingVote || (int) $user['sudah_memilih'] === 1) {
+                $db->transRollback();
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Anda sudah memberikan suara.'
+                ]);
+            }
+
             $suaraModel->insert([
-                'user_id'  => $userId,
-                'calon_id' => $calonId,
+                'user_id'     => $userId,
+                'calon_id'    => $calonId,
                 'waktu_pilih' => date('Y-m-d H:i:s')
             ]);
 
-            // Update status sudah_memilih di tabel users
-            $userModel = new \App\Models\UserModel();
             $userModel->update($userId, ['sudah_memilih' => 1]);
+            $db->transComplete();
+
+            if (!$db->transStatus()) {
+                throw new \RuntimeException('Gagal menyimpan transaksi suara.');
+            }
 
             return $this->response->setJSON([
                 'success' => true,

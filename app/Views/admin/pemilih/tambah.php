@@ -76,7 +76,6 @@
                     <form action="<?= base_url('admin/pemilih/simpan') ?>" method="post">
                         <?= csrf_field() ?>
 
-
                         <div class="mb-3">
                             <label class="form-label">Nama Lengkap</label>
                             <input type="text" name="nama" class="form-control" required minlength="3" maxlength="100" autocomplete="off" placeholder="Nama lengkap">
@@ -84,15 +83,13 @@
 
                         <div class="mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="Email aktif" maxlength="100" autocomplete="off" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
+                            <input type="email" name="email" class="form-control" placeholder="Opsional (Tidak Wajib)" maxlength="100" autocomplete="off" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
                         </div>
-
 
                         <div class="mb-3">
                             <label class="form-label">Username</label>
                             <input type="text" name="username" class="form-control" required minlength="4" maxlength="50" autocomplete="off" placeholder="Username">
                         </div>
-
 
                         <div class="mb-3">
                             <label class="form-label">Password</label>
