@@ -5,7 +5,7 @@
   <!--begin::Sidebar Brand-->
   <div class="sidebar-brand">
     <!--begin::Brand Link-->
-    <a href="<?= base_url($role === 'admin' ? 'admin/dashboard' : ($role === 'superadmin' ? 'admin/admins' : 'user/hasil')) ?>" class="brand-link">
+    <a href="<?= base_url($role === 'admin' || $role === 'superadmin' ? 'admin/dashboard' : 'user/hasil') ?>" class="brand-link">
       <!--begin::Brand Image-->
       <div class="brand-image opacity-75 shadow">
         🗳
@@ -31,9 +31,9 @@
         id="navigation">
         <?php if ($role === 'admin' || $role === 'superadmin'): ?>
           <li class="nav-item">
-            <a href="<?= base_url($role === 'admin' ? 'admin/dashboard' : 'admin/admins') ?>" class="nav-link">
+            <a href="<?= base_url('admin/dashboard') ?>" class="nav-link">
               <i class="nav-icon bi bi-speedometer"></i>
-              <p><?= $role === 'admin' ? 'Dashboard' : 'Manajemen Admin' ?></p>
+              <p>Dashboard</p>
             </a>
           </li>
 

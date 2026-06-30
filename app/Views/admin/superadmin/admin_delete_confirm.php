@@ -73,6 +73,18 @@
           <button type="submit" class="btn btn-danger">Hapus Admin</button>
           <a href="<?= base_url('admin/admins') ?>" class="btn btn-secondary">Batal</a>
         </form>
+
+        <hr>
+
+        <h5 class="mt-3">Atau: Hapus Data Terkait (tetap pertahankan akun admin)</h5>
+        <form action="<?= base_url('admin/admins/delete-data/' . $admin['id']) ?>" method="post">
+          <?= csrf_field() ?>
+          <div class="mb-3">
+            <label for="confirm_delete_data" class="form-label">Ketik <strong>HAPUS DATA</strong> untuk konfirmasi</label>
+            <input type="text" name="confirm_delete" id="confirm_delete_data" class="form-control" placeholder="HAPUS DATA" required>
+          </div>
+          <button type="submit" class="btn btn-warning">Hapus Data Terkait</button>
+        </form>
       </div>
     </div>
   </div>

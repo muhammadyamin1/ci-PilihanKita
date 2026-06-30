@@ -85,7 +85,7 @@ class Cleanup extends BaseController
 
             switch ($action) {
                 case 'delete_votes':
-                    $this->db->table('suara')->delete([]);
+                    $this->db->table('suara')->truncate();
                     $progress[] = 'Semua suara berhasil dihapus.';
                     break;
 
@@ -104,7 +104,8 @@ class Cleanup extends BaseController
                     if ($remainingCalon > 0) {
                         return redirect()->back()->with('error', 'Masih ada calon yang terkait dengan kategori. Hapus calon terlebih dahulu.');
                     }
-                    (new KategoriModel())->delete([]);
+                    // Use truncate to remove all kategori rows
+                    $this->db->table('kategori_pemilihan')->truncate();
                     $progress[] = 'Semua kategori berhasil dihapus.';
                     break;
 
@@ -118,7 +119,7 @@ class Cleanup extends BaseController
                     break;
 
                 case 'delete_all':
-                    $this->db->table('suara')->delete([]);
+                    $this->db->table('suara')->truncate();
                     $progress[] = 'Semua suara dihapus.';
 
                     (new UserModel())->where('role', 'user')->delete();
@@ -127,7 +128,7 @@ class Cleanup extends BaseController
                     $this->deleteAllCalon();
                     $progress[] = 'Semua calon dihapus.';
 
-                    (new KategoriModel())->delete([]);
+                    $this->db->table('kategori_pemilihan')->truncate();
                     $progress[] = 'Semua kategori dihapus.';
 
                     $superadminId = session()->get('id');
@@ -187,9 +188,10 @@ class Cleanup extends BaseController
         $deletedCount = 0;
         $errors = [];
 
+        $total = count($files);
         foreach ($files as $file) {
             $fullPath = $path . $file;
-            if (file_exists($fullPath) && is_file($fullPath) && unlink($fullPath)) {
+            if (file_exists($fullPath) && is_file($fullPath) && @unlink($fullPath)) {
                 $deletedFiles[] = $file;
                 $deletedCount++;
             } elseif (file_exists($fullPath) && !is_file($fullPath)) {
@@ -197,9 +199,13 @@ class Cleanup extends BaseController
             }
         }
 
+        $kept = max(0, $total - $deletedCount);
+
         return [
             'status' => empty($errors) ? 'success' : 'error',
+            'total_files_scanned' => $total,
             'deleted_count' => $deletedCount,
+            'kept_count' => $kept,
             'deleted_files' => $deletedFiles,
             'errors' => $errors,
         ];
@@ -219,6 +225,7 @@ class Cleanup extends BaseController
             }
         }
 
-        $calonModel->delete([]);
+        // Use truncate to remove all calon rows (guard against delete([]) restriction)
+        $this->db->table('calon')->truncate();
     }
 }

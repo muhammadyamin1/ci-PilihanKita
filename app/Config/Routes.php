@@ -65,9 +65,17 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('admins/delete-confirm/(:num)', 'Admin\SuperAdmin::deleteConfirm/$1', ['filter' => 'F_superadmin']);
     $routes->post('admins/delete/(:num)', 'Admin\SuperAdmin::delete/$1', ['filter' => 'F_superadmin']);
 
+    // Delete related data for a specific admin (keep admin account)
+    $routes->post('admins/delete-data/(:num)', 'Admin\SuperAdmin::deleteRelatedData/$1', ['filter' => 'F_superadmin']);
+
     $routes->get('cleanup', 'Admin\Cleanup::index', ['filter' => 'F_superadmin']);
     $routes->post('cleanup/delete', 'Admin\Cleanup::delete', ['filter' => 'F_superadmin']);
     $routes->post('cleanup/delete-data', 'Admin\Cleanup::deleteData', ['filter' => 'F_superadmin']);
+
+    // SuperAdmin dashboard helper endpoints
+    $routes->get('superadmin/categories/top', 'Admin\Dashboard::categoriesTop', ['filter' => 'F_superadmin']);
+    $routes->get('superadmin/category/(:num)', 'Admin\Dashboard::categoryStats/$1', ['filter' => 'F_superadmin']);
+    $routes->get('superadmin/admins/list', 'Admin\Dashboard::adminsList', ['filter' => 'F_superadmin']);
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');

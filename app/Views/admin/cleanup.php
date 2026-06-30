@@ -40,7 +40,7 @@
     <?php if (!empty($cleanupResult)): ?>
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h5 class="card-title">Hasil Hapus File Orphan</h5>
+          <h5 class="card-title" style="float:none; margin-bottom:0.5rem;">Hasil Hapus File Orphan</h5>
           <?php foreach ($cleanupResult as $type => $result): ?>
             <div class="mb-2">
               <strong><?= ucfirst($type) ?></strong>
@@ -82,7 +82,7 @@
           <div class="card-body">
             <p class="text-muted">File yang ada di folder upload tetapi tidak ditemukan di database.</p>
 
-            <h6>User</h6>
+            <h6>User (Admin Profile)</h6>
             <div>Total file orphan: <strong><?= count($preview['user']['files']) ?></strong></div>
             <?php if (!empty($preview['user']['files'])): ?>
               <ul class="small">
