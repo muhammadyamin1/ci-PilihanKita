@@ -195,7 +195,7 @@
   // helper to fetch category stats and render chart
   async function loadCategory(id) {
     setTopCategoryLoading(id, true);
-    const res = await fetch('<?= base_url('admin/superadmin/category') ?>/' + id);
+    const res = await fetch('<?= base_url('superadmin/category') ?>/' + id);
     if (!res.ok) {
       setTopCategoryLoading(id, false);
       return;
@@ -265,7 +265,7 @@
       minimumInputLength: 2,
       allowClear: true,
       ajax: {
-        url: '<?= base_url('admin/superadmin/admins/list') ?>',
+        url: '<?= base_url('superadmin/admins/list') ?>',
         dataType: 'json',
         delay: 250,
         data: function(params) {
@@ -292,7 +292,7 @@
 
   // Load top categories, optionally filtered by admin
   async function loadTopCategories(adminId) {
-    const url = '<?= base_url('admin/superadmin/categories/top') ?>' + (adminId ? '?admin_id=' + adminId : '');
+    const url = '<?= base_url('superadmin/categories/top') ?>' + (adminId ? '?admin_id=' + adminId : '');
     const res = await fetch(url);
     if (!res.ok) return;
     const rows = await res.json();

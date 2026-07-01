@@ -90,7 +90,7 @@ class SuperAdmin extends BaseController
             'sudah_memilih' => 0,
         ]);
 
-        return redirect()->to('/admin/admins')->with('success', 'Admin berhasil ditambahkan.');
+        return redirect()->to('/superadmin/admins')->with('success', 'Admin berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -98,7 +98,7 @@ class SuperAdmin extends BaseController
         $admin = $this->userModel->where('id', $id)->where('role', 'admin')->first();
 
         if (!$admin) {
-            return redirect()->to('/admin/admins')->with('error', 'Admin tidak ditemukan.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Admin tidak ditemukan.');
         }
 
         return view('admin/superadmin/admin_form', [
@@ -113,7 +113,7 @@ class SuperAdmin extends BaseController
         $admin = $this->userModel->where('id', $id)->where('role', 'admin')->first();
 
         if (!$admin) {
-            return redirect()->to('/admin/admins')->with('error', 'Admin tidak ditemukan.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Admin tidak ditemukan.');
         }
 
         $username = trim($this->request->getPost('username'));
@@ -169,7 +169,7 @@ class SuperAdmin extends BaseController
 
         $this->userModel->update($id, $updateData);
 
-        return redirect()->to('/admin/admins')->with('success', 'Admin berhasil diperbarui.');
+        return redirect()->to('/superadmin/admins')->with('success', 'Admin berhasil diperbarui.');
     }
 
     public function deleteConfirm($id)
@@ -177,7 +177,7 @@ class SuperAdmin extends BaseController
         $admin = $this->userModel->where('id', $id)->where('role', 'admin')->first();
 
         if (!$admin) {
-            return redirect()->to('/admin/admins')->with('error', 'Admin tidak ditemukan.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Admin tidak ditemukan.');
         }
 
         $kategoriModel = new KategoriModel();
@@ -206,16 +206,16 @@ class SuperAdmin extends BaseController
         $admin = $this->userModel->where('id', $id)->where('role', 'admin')->first();
 
         if (!$admin) {
-            return redirect()->to('/admin/admins')->with('error', 'Admin tidak ditemukan.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Admin tidak ditemukan.');
         }
 
         if ($id == session()->get('id')) {
-            return redirect()->to('/admin/admins')->with('error', 'Anda tidak dapat menghapus akun admin yang sedang digunakan.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Anda tidak dapat menghapus akun admin yang sedang digunakan.');
         }
 
         // Protect specific superadmin account (id 2) from deletion
         if ((int) $id === 2) {
-            return redirect()->to('/admin/admins')->with('error', 'Akun Super Admin dilindungi dan tidak boleh dihapus.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Akun Super Admin dilindungi dan tidak boleh dihapus.');
         }
 
         $confirmation = trim($this->request->getPost('confirm_delete'));
@@ -278,7 +278,7 @@ class SuperAdmin extends BaseController
                 null                            // new_value
             );
 
-            return redirect()->to('/admin/admins')->with('success', 'Admin berhasil dihapus beserta data voting terkait. Aktivitas telah dicatat dalam log.');
+            return redirect()->to('/superadmin/admins')->with('success', 'Admin berhasil dihapus beserta data voting terkait. Aktivitas telah dicatat dalam log.');
         } catch (\Exception $e) {
             $this->db->transRollback();
             log_message('error', 'SuperAdmin delete error: ' . $e->getMessage());
@@ -294,12 +294,12 @@ class SuperAdmin extends BaseController
         $admin = $this->userModel->where('id', $id)->where('role', 'admin')->first();
 
         if (!$admin) {
-            return redirect()->to('/admin/admins')->with('error', 'Admin tidak ditemukan.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Admin tidak ditemukan.');
         }
 
         // Protect specific superadmin account (id 2) from data deletion
         if ((int) $id === 2) {
-            return redirect()->to('/admin/admins')->with('error', 'Data untuk akun Super Admin dilindungi dan tidak boleh dihapus.');
+            return redirect()->to('/superadmin/admins')->with('error', 'Data untuk akun Super Admin dilindungi dan tidak boleh dihapus.');
         }
 
         $confirmation = trim($this->request->getPost('confirm_delete'));
@@ -356,7 +356,7 @@ class SuperAdmin extends BaseController
                 null                            // new_value
             );
 
-            return redirect()->to('/admin/admins')->with('success', 'Data voting terkait admin berhasil dihapus. Aktivitas telah dicatat dalam log.');
+            return redirect()->to('/superadmin/admins')->with('success', 'Data voting terkait admin berhasil dihapus. Aktivitas telah dicatat dalam log.');
         } catch (\Exception $e) {
             $this->db->transRollback();
             log_message('error', 'SuperAdmin deleteRelatedData error: ' . $e->getMessage());

@@ -9,6 +9,11 @@
   <script src="<?= base_url('js/sweetalert2.js') ?>"></script>
 
   <style>
+    .form-check .form-check-input,
+    .form-check .form-check-label {
+      cursor: pointer;
+    }
+
     .form-check-input:checked {
       background-color: #0d6efd;
       border-color: #0d6efd;

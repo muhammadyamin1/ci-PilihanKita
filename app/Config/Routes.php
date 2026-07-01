@@ -17,6 +17,11 @@ $routes->post('forgot-password/verify', 'Auth::processForgotPasswordVerify');
 $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
 
+    $routes->get('profile', 'Admin\Profile::index');
+    $routes->post('profile/update-password', 'Admin\Profile::updatePassword');
+    $routes->post('profile/update-foto', 'Admin\Profile::updateFoto');
+    $routes->post('profile/update-email', 'Admin\Profile::updateEmail');
+
     $routes->get('kategori', 'Admin\Kategori::index');
     $routes->post('kategori/store', 'Admin\Kategori::store');
     $routes->post('kategori/toggle/(:num)', 'Admin\Kategori::toggle/$1');
@@ -47,35 +52,26 @@ $routes->group('admin', ['filter' => 'F_admin'], function ($routes) {
     $routes->get('pemilih/import-result/(:any)', 'Admin\Pemilih::importResult/$1');
     $routes->get('pemilih/download-import-csv/(:any)', 'Admin\Pemilih::downloadImportCsv/$1');
     $routes->get('pemilih/download-generated-csv/(:any)', 'Admin\Pemilih::downloadGeneratedCsv/$1');
-    
-    // Profile routes
-    $routes->get('profile', 'Admin\Profile::index');
-    $routes->post('profile/update-password', 'Admin\Profile::updatePassword');
-    $routes->post('profile/update-foto', 'Admin\Profile::updateFoto');
+});
 
-    //Update email
-    $routes->post('profile/update-email', 'Admin\Profile::updateEmail');
+$routes->group('superadmin', ['filter' => 'F_superadmin'], function ($routes) {
+    $routes->get('dashboard', 'Admin\Dashboard::index');
+    $routes->get('admins', 'Admin\SuperAdmin::index');
+    $routes->get('admins/create', 'Admin\SuperAdmin::create');
+    $routes->post('admins/store', 'Admin\SuperAdmin::store');
+    $routes->get('admins/edit/(:num)', 'Admin\SuperAdmin::edit/$1');
+    $routes->post('admins/update/(:num)', 'Admin\SuperAdmin::update/$1');
+    $routes->get('admins/delete-confirm/(:num)', 'Admin\SuperAdmin::deleteConfirm/$1');
+    $routes->post('admins/delete/(:num)', 'Admin\SuperAdmin::delete/$1');
+    $routes->post('admins/delete-data/(:num)', 'Admin\SuperAdmin::deleteRelatedData/$1');
 
-    // Super Admin routes
-    $routes->get('admins', 'Admin\SuperAdmin::index', ['filter' => 'F_superadmin']);
-    $routes->get('admins/create', 'Admin\SuperAdmin::create', ['filter' => 'F_superadmin']);
-    $routes->post('admins/store', 'Admin\SuperAdmin::store', ['filter' => 'F_superadmin']);
-    $routes->get('admins/edit/(:num)', 'Admin\SuperAdmin::edit/$1', ['filter' => 'F_superadmin']);
-    $routes->post('admins/update/(:num)', 'Admin\SuperAdmin::update/$1', ['filter' => 'F_superadmin']);
-    $routes->get('admins/delete-confirm/(:num)', 'Admin\SuperAdmin::deleteConfirm/$1', ['filter' => 'F_superadmin']);
-    $routes->post('admins/delete/(:num)', 'Admin\SuperAdmin::delete/$1', ['filter' => 'F_superadmin']);
+    $routes->get('cleanup', 'Admin\Cleanup::index');
+    $routes->post('cleanup/delete', 'Admin\Cleanup::delete');
+    $routes->post('cleanup/delete-data', 'Admin\Cleanup::deleteData');
 
-    // Delete related data for a specific admin (keep admin account)
-    $routes->post('admins/delete-data/(:num)', 'Admin\SuperAdmin::deleteRelatedData/$1', ['filter' => 'F_superadmin']);
-
-    $routes->get('cleanup', 'Admin\Cleanup::index', ['filter' => 'F_superadmin']);
-    $routes->post('cleanup/delete', 'Admin\Cleanup::delete', ['filter' => 'F_superadmin']);
-    $routes->post('cleanup/delete-data', 'Admin\Cleanup::deleteData', ['filter' => 'F_superadmin']);
-
-    // SuperAdmin dashboard helper endpoints
-    $routes->get('superadmin/categories/top', 'Admin\Dashboard::categoriesTop', ['filter' => 'F_superadmin']);
-    $routes->get('superadmin/category/(:num)', 'Admin\Dashboard::categoryStats/$1', ['filter' => 'F_superadmin']);
-    $routes->get('superadmin/admins/list', 'Admin\Dashboard::adminsList', ['filter' => 'F_superadmin']);
+    $routes->get('categories/top', 'Admin\Dashboard::categoriesTop');
+    $routes->get('category/(:num)', 'Admin\Dashboard::categoryStats/$1');
+    $routes->get('admins/list', 'Admin\Dashboard::adminsList');
 });
 $routes->group('user', ['filter' => 'F_user'], function ($routes) {
     $routes->get('pemilihan', 'Auth::pemilihan');

@@ -71,13 +71,13 @@
 
           <?php if ($role === 'superadmin'): ?>
             <li class="nav-item">
-              <a href="<?= base_url('admin/admins') ?>" class="nav-link">
+              <a href="<?= base_url('superadmin/admins') ?>" class="nav-link">
                 <i class="nav-icon bi bi-people"></i>
                 <p>Daftar Admin</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="<?= base_url('admin/cleanup') ?>" class="nav-link">
+              <a href="<?= base_url('superadmin/cleanup') ?>" class="nav-link">
                 <i class="nav-icon bi bi-trash2"></i>
                 <p>Cleanup Data</p>
               </a>

@@ -11,7 +11,7 @@
       <div class="col-sm-6">
         <ol class="breadcrumb float-sm-end">
           <li class="breadcrumb-item"><a href="#">Home</a></li>
-          <li class="breadcrumb-item"><a href="<?= base_url('admin/admins') ?>">Manajemen Admin</a></li>
+          <li class="breadcrumb-item"><a href="<?= base_url('superadmin/admins') ?>">Manajemen Admin</a></li>
           <li class="breadcrumb-item active" aria-current="page">Konfirmasi Hapus</li>
         </ol>
       </div>
@@ -62,7 +62,7 @@
           </tbody>
         </table>
 
-        <form action="<?= base_url('admin/admins/delete/' . $admin['id']) ?>" method="post">
+        <form action="<?= base_url('superadmin/admins/delete/' . $admin['id']) ?>" method="post">
           <?= csrf_field() ?>
 
           <div class="mb-3">
@@ -71,13 +71,13 @@
           </div>
 
           <button type="submit" class="btn btn-danger">Hapus Admin</button>
-          <a href="<?= base_url('admin/admins') ?>" class="btn btn-secondary">Batal</a>
+          <a href="<?= base_url('superadmin/admins') ?>" class="btn btn-secondary">Batal</a>
         </form>
 
         <hr>
 
         <h5 class="mt-3">Atau: Hapus Data Terkait (tetap pertahankan akun admin)</h5>
-        <form action="<?= base_url('admin/admins/delete-data/' . $admin['id']) ?>" method="post">
+        <form action="<?= base_url('superadmin/admins/delete-data/' . $admin['id']) ?>" method="post">
           <?= csrf_field() ?>
           <div class="mb-3">
             <label for="confirm_delete_data" class="form-label">Ketik <strong>HAPUS DATA</strong> untuk konfirmasi</label>

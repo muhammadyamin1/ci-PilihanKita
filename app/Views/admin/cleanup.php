@@ -36,6 +36,13 @@
 
     <?php $cleanupResult = session()->getFlashdata('cleanup_result'); ?>
     <?php $cleanupProgress = session()->getFlashdata('cleanup_progress'); ?>
+    <?php $cleanupOpenStep = session()->getFlashdata('cleanup_open_step'); ?>
+    <?php if (empty($cleanupAllowedStep)) {
+        $cleanupOpenStep = '';
+    } elseif (empty($cleanupOpenStep)) {
+        $cleanupOpenStep = $cleanupAllowedStep;
+    }
+?>
 
     <?php if (!empty($cleanupResult)): ?>
       <div class="card shadow-sm mb-3">
@@ -63,8 +70,8 @@
     <?php if (!empty($cleanupProgress)): ?>
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h5 class="card-title">Progress Hapus Data</h5>
-          <ul>
+          <h5 class="card-title mt-2" style="float:none; margin-bottom:0.5rem;">Progress Hapus Data</h5>
+          <ul class="mb-2">
             <?php foreach ($cleanupProgress as $step): ?>
               <li><?= esc($step) ?></li>
             <?php endforeach; ?>
@@ -142,39 +149,58 @@
               </tbody>
             </table>
 
+            <?php if (empty($cleanupAllowedStep)): ?>
+              <div class="alert alert-success mb-3">
+                <strong>Semua data telah dihapus atau sudah kosong.</strong> Tidak ada langkah cleanup yang tersisa.
+              </div>
+            <?php endif; ?>
             <div class="accordion" id="cleanupSteps">
               <?php $steps = [
-                ['name' => 'delete_votes', 'label' => 'Hapus Semua Suara', 'hint' => 'Sebelum hapus user atau calon', 'confirm' => 'HAPUS'],
-                ['name' => 'delete_users', 'label' => 'Hapus Semua Pemilih', 'hint' => 'Hapus semua role user', 'confirm' => 'HAPUS'],
-                ['name' => 'delete_calon', 'label' => 'Hapus Semua Calon', 'hint' => 'Hapus semua calon dan suara terkait', 'confirm' => 'HAPUS'],
+                ['name' => 'delete_votes', 'label' => 'Hapus Semua Suara', 'hint' => 'Hapus semua suara (voting) yang telah dilakukan', 'confirm' => 'HAPUS'],
+                ['name' => 'delete_users', 'label' => 'Hapus Semua Pemilih', 'hint' => 'Hapus semua role user (pemilih)', 'confirm' => 'HAPUS'],
+                ['name' => 'delete_calon', 'label' => 'Hapus Semua Calon', 'hint' => 'Hapus semua calon', 'confirm' => 'HAPUS'],
                 ['name' => 'delete_categories', 'label' => 'Hapus Semua Kategori', 'hint' => 'Hapus kategori setelah calon sudah kosong', 'confirm' => 'HAPUS'],
-                ['name' => 'delete_admins', 'label' => 'Hapus Semua Admin', 'hint' => 'Hapus akun admin selain Super Admin', 'confirm' => 'HAPUS'],
-                ['name' => 'delete_all', 'label' => 'Hapus Semua Data (Urut)', 'hint' => 'Lakukan semua langkah secara berurutan', 'confirm' => 'HAPUS SEMUA'],
+                ['name' => 'delete_admins', 'label' => 'Hapus Semua Admin', 'hint' => 'Hapus semua akun admin', 'confirm' => 'HAPUS'],
               ]; ?>
 
               <?php foreach ($steps as $index => $step): ?>
+                <?php $isOpen = $step['name'] === $cleanupOpenStep; ?>
+                <?php $isAllowed = $step['name'] === $cleanupAllowedStep; ?>
                 <div class="accordion-item">
                   <h2 class="accordion-header" id="heading-<?= $index ?>">
-                    <button class="accordion-button <?= $index > 0 ? 'collapsed' : '' ?>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<?= $index ?>" aria-expanded="<?= $index === 0 ? 'true' : 'false' ?>" aria-controls="collapse-<?= $index ?>">
+                    <button class="accordion-button <?= $isOpen ? '' : 'collapsed' ?> <?= $isAllowed ? '' : 'disabled' ?>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<?= $index ?>" aria-expanded="<?= $isOpen ? 'true' : 'false' ?>" aria-controls="collapse-<?= $index ?>" <?= $isAllowed ? '' : 'disabled' ?>>
                       <?= esc($step['label']) ?>
                     </button>
                   </h2>
-                  <div id="collapse-<?= $index ?>" class="accordion-collapse collapse <?= $index === 0 ? 'show' : '' ?>" aria-labelledby="heading-<?= $index ?>" data-bs-parent="#cleanupSteps">
+                  <div id="collapse-<?= $index ?>" class="accordion-collapse collapse <?= $isOpen ? 'show' : '' ?>" aria-labelledby="heading-<?= $index ?>" data-bs-parent="#cleanupSteps">
                     <div class="accordion-body">
                       <p><?= esc($step['hint']) ?></p>
-                      <form action="<?= base_url('admin/cleanup/delete-data') ?>" method="post">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="<?= esc($step['name']) ?>">
-                        <div class="mb-3">
-                          <label class="form-label">Ketik konfirmasi: <strong><?= esc($step['confirm']) ?></strong></label>
-                          <input type="text" name="confirm_delete" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-danger">Jalankan</button>
-                      </form>
+                      <?php if ($isAllowed): ?>
+                        <form action="<?= base_url('admin/cleanup/delete-data') ?>" method="post">
+                          <?= csrf_field() ?>
+                          <input type="hidden" name="action" value="<?= esc($step['name']) ?>">
+                          <?php if (in_array($step['name'], ['delete_admins','delete_users','delete_votes'])): ?>
+                            <div class="mb-3">
+                              <label class="form-label">Kata sandi Super Admin</label>
+                              <input type="password" name="admin_password" class="form-control" required>
+                            </div>
+                          <?php endif; ?>
+                          <div class="mb-3">
+                            <label class="form-label">Ketik konfirmasi: <strong><?= esc($step['confirm']) ?></strong></label>
+                            <input type="text" name="confirm_delete" class="form-control" required>
+                          </div>
+                          <button type="submit" class="btn btn-danger">Jalankan</button>
+                        </form>
+                      <?php else: ?>
+                        <div class="text-muted"><em>Langkah ini akan tersedia setelah langkah sebelumnya selesai.</em></div>
+                      <?php endif; ?>
                     </div>
                   </div>
                 </div>
               <?php endforeach; ?>
+            </div>
+            <div class="alert alert-secondary mt-3 mb-0">
+              <strong>Lakukan semua langkah secara berurutan.</strong>
             </div>
           </div>
         </div>

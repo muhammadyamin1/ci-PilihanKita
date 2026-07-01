@@ -14,7 +14,7 @@ class AdminFilter implements FilterInterface
             return redirect()->to('/login')->with('error', 'Anda belum login, silakan login terlebih dahulu!');
         }
 
-        if (!in_array(session()->get('role'), ['admin', 'superadmin'])) {
+        if (session()->get('role') !== 'admin') {
             return redirect()->to('/login')->with('error', 'Anda bukan admin!');
         }
     }

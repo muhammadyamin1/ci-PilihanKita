@@ -10,7 +10,7 @@
       <div class="col-sm-6">
         <ol class="breadcrumb float-sm-end">
           <li class="breadcrumb-item"><a href="#">Home</a></li>
-          <li class="breadcrumb-item"><a href="<?= base_url('admin/admins') ?>">Manajemen Admin</a></li>
+          <li class="breadcrumb-item"><a href="<?= base_url('superadmin/admins') ?>">Manajemen Admin</a></li>
           <li class="breadcrumb-item active" aria-current="page"><?= esc($title) ?></li>
         </ol>
       </div>
@@ -29,7 +29,7 @@
 
     <div class="card shadow-sm">
       <div class="card-body">
-        <form action="<?= base_url('admin/admins/' . $action) ?>" method="post">
+        <form action="<?= base_url('superadmin/admins/' . $action) ?>" method="post">
           <?= csrf_field() ?>
 
           <div class="mb-3">
@@ -63,7 +63,7 @@
           </div>
 
           <button type="submit" class="btn btn-primary">Simpan</button>
-          <a href="<?= base_url('admin/admins') ?>" class="btn btn-secondary">Batal</a>
+          <a href="<?= base_url('superadmin/admins') ?>" class="btn btn-secondary">Batal</a>
         </form>
       </div>
     </div>

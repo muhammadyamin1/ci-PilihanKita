@@ -35,7 +35,7 @@
     <?php endif; ?>
 
     <div class="mb-3 text-end">
-      <a href="<?= base_url('admin/admins/create') ?>" class="btn btn-primary">+ Tambah Admin</a>
+      <a href="<?= base_url('superadmin/admins/create') ?>" class="btn btn-primary">+ Tambah Admin</a>
     </div>
 
     <div class="card shadow-sm">
@@ -63,8 +63,8 @@
                     <td><?= esc($admin['created_at'] ?? '-') ?></td>
                     <td>
                       <div class="btn-group" role="group">
-                        <a href="<?= base_url('admin/admins/edit/' . $admin['id']) ?>" class="btn btn-sm btn-outline-info">Edit</a>
-                        <a href="<?= base_url('admin/admins/delete-confirm/' . $admin['id']) ?>" class="btn btn-sm btn-outline-danger">Hapus</a>
+                        <a href="<?= base_url('superadmin/admins/edit/' . $admin['id']) ?>" class="btn btn-sm btn-outline-info">Edit</a>
+                        <a href="<?= base_url('superadmin/admins/delete-confirm/' . $admin['id']) ?>" class="btn btn-sm btn-outline-danger">Hapus</a>
                       </div>
                     </td>
                   </tr>
